@@ -1,0 +1,9 @@
+node_modules
+apps/web/dist
+data
+backups
+.env
+.env.*
+*.log
+deploy/vm/*.tar.gz
+.DS_Store

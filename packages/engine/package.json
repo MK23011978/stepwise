@@ -1,0 +1,9 @@
+{
+  "name": "@stepwise/engine",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Question generators and answer checking (code). Question banks and teaching pages live in the database.",
+  "main": "./index.cjs",
+  "types": "./index.d.ts",
+  "exports": { ".": { "types": "./index.d.ts", "default": "./index.cjs" } }
+}

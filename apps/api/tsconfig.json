@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "outDir": "dist", "rootDir": ".", "types": ["node"], "allowJs": true, "checkJs": false },
+  "include": ["src", "scripts", "test", "drizzle.config.ts"]
+}

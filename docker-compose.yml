@@ -1,0 +1,16 @@
+# Local PostgreSQL 16 for development (production uses Cloud SQL for PostgreSQL 16).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: stepwise
+      POSTGRES_PASSWORD: stepwise
+      POSTGRES_DB: stepwise
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stepwise"]
+      interval: 2s
+      retries: 30
+volumes:
+  pgdata:

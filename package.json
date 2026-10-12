@@ -1,0 +1,26 @@
+{
+  "name": "stepwise",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Stepwise \u2014 GCSE programme from Year 7 to Year 11",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "test": "npm run test -w @stepwise/api && npm run test -w @stepwise/api-client && npm run test -w @stepwise/web && node legacy/test/subjects.test.js",
+    "legacy:start": "node legacy/server.js",
+    "legacy:seed": "node legacy/seed.js --reset",
+    "legacy:test": "node legacy/test/api.test.js && node legacy/test/subjects.test.js",
+    "dev:api": "npm run dev -w @stepwise/api",
+    "dev:web": "npm run dev -w @stepwise/web",
+    "build": "npm run build -w @stepwise/web && npm run typecheck -w @stepwise/api",
+    "db:migrate": "npm run db:migrate -w @stepwise/api",
+    "db:seed": "npm run db:seed -w @stepwise/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,27 @@
+# Render Blueprint — one free Docker web service (API + React app). Database: Neon (free PostgreSQL 16).
+services:
+  - type: web
+    name: stepwise
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: DB_POOL_MAX
+        value: "5"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL      # Neon connection string (…?sslmode=require) — entered in the Render dashboard
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD    # used only on first boot to create the admin
+        sync: false
