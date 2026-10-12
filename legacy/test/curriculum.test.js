@@ -84,7 +84,9 @@ for (const id of Object.keys(STYLES)) {
     let js; try { js = JSON.stringify(q); } catch (e) { bad('not serialisable'); continue; }
     if (JSON.stringify(JSON.parse(js)) !== js) bad('JSON round trip differs');
     for (const f of FIELDS) if (!(f in q)) bad('missing field ' + f);
-    if (Object.keys(q).length !== FIELDS.length) bad('extra fields ' + Object.keys(q).join(','));
+    const OPTIONAL = q.check && q.check.type === 'choice' ? ['options', 'multi'] : [];
+    if (Object.keys(q).length !== FIELDS.length + OPTIONAL.filter((f) => f in q).length || Object.keys(q).some((k) => !FIELDS.includes(k) && !OPTIONAL.includes(k))) bad('extra fields ' + Object.keys(q).join(','));
+    if (q.check && q.check.type === 'choice' && (!Array.isArray(q.options) || q.options.length < 2)) bad('choice question without options');
     if (typeof q.html !== 'string' || !q.html) bad('html');
     if (!(q.diagram === null || (typeof q.diagram === 'string' && q.diagram.startsWith('<svg') && q.diagram.endsWith('</svg>')))) bad('diagram');
     if (typeof q.answer !== 'string' || !q.answer) bad('answer');

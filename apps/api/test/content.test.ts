@@ -4,6 +4,7 @@ import * as s from '../src/db/schema.js';
 import { loadLegacyContent } from '../src/content/legacy.js';
 import { hashPassword } from '../src/core/password.js';
 import { makeApp, client } from './setup.js';
+import { syncContent } from '../src/content/import.js';
 
 let ctx: Awaited<ReturnType<typeof makeApp>>;
 beforeAll(async () => { ctx = await makeApp(); }, 180_000);
@@ -20,6 +21,19 @@ describe('stage 3 — content in the database', () => {
     expect(ctx.deps.content.learnIds().length).toBe(legacy.learnIds().length);
     const gen = await db.select().from(s.styles).where(eq(s.styles.source, 'generator'));
     expect(gen.length).toBeGreaterThan(400); // maths + science/CS calculation generators stay in code
+  });
+
+  it('adds new seed topics to an existing database on start-up, without touching edits', async () => {
+    const db = ctx.deps.db;
+    expect((await syncContent(db)).changed).toBe(false); // nothing new
+    const [t] = await db.select().from(s.topics).where(eq(s.topics.id, 'y9-polygons'));
+    await db.update(s.topics).set({ name: 'Edited by admin' }).where(eq(s.topics.id, 'y9-polygons'));
+    await db.delete(s.learnPages).where(eq(s.learnPages.topicId, 'y9-pythagoras'));
+    const r = await syncContent(db);
+    expect(r.changed).toBe(true);
+    expect((await db.select().from(s.learnPages).where(eq(s.learnPages.topicId, 'y9-pythagoras'))).length).toBe(1);
+    expect((await db.select().from(s.topics).where(eq(s.topics.id, 'y9-polygons')))[0].name).toBe('Edited by admin');
+    await db.update(s.topics).set({ name: t.name }).where(eq(s.topics.id, 'y9-polygons'));
   });
 
   it('serves generated and bank questions that mark their own answers correct', () => {

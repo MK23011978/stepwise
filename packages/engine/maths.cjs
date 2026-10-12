@@ -384,6 +384,11 @@ function checkAnswer(check, input) {
         if (parts.length !== check.parts.length) return false;
         return parts.every((p, i) => { const s = p.trim(); if (!RE_NUM.test(s)) return false; return Math.abs(Number(s) - check.parts[i]) < 1e-9; });
       }
+      case 'choice': {
+        const picked = [...new Set((String(input).toUpperCase().match(/[A-H]/g) || []).map((l) => 'ABCDEFGH'.indexOf(l)))].sort();
+        const want = check.correct.slice().sort();
+        return picked.length === want.length && picked.every((v, i) => v === want[i]);
+      }
       default: return false;
     }
   } catch (e) {
@@ -672,7 +677,18 @@ function finish(q) {
     html: q.html, diagram: q.diagram || null, answerLabel: q.answerLabel || '', unit: q.unit || '',
     format: q.format || FMT[c.type] || '', answer: String(q.answer), answerHtml: ah, check: c,
     hint: q.hint || '', steps: q.steps || [],
+    ...(q.options ? { options: q.options, multi: !!q.multi } : {}),
   };
+}
+// Multiple choice for maths generators: options[correct] is right (or an array of indices when multi). Shuffled with r.
+const LETTERS = 'ABCDEFGH';
+function mcq(r, options, correct, o = {}) {
+  const want = Array.isArray(correct) ? correct : [correct];
+  const order = r.shuffle(options.map((_, i) => i));
+  const shown = order.map((i) => options[i]);
+  const pos = order.map((orig, p) => (want.includes(orig) ? p : -1)).filter((p) => p >= 0);
+  return { options: shown, multi: want.length > 1, answer: pos.map((p) => LETTERS[p]).join(''), check: { type: 'choice', correct: pos },
+    answerHtml: pos.map((p) => `${LETTERS[p]}) ${shown[p]}`).join('<br>'), format: o.format || (want.length > 1 ? `Choose ${want.length} answers.` : 'Choose one answer.') };
 }
 // Style ids are `${topicId}-${n}` in registration order — never reorder or remove (student progress references them).
 function regStyle(t, s) {
@@ -7764,6 +7780,20 @@ addStyles('y11-cumulative-frequency', [
 
 }
 // @@FRAGMENTS@@
+
+// ---- Year 9 school topics (one file per unit group in ./maths-y9s/, each exports (H) => { … }) ----
+{
+  const H = {
+    topic, addStyles, SPEC, nAns, fAns, eAns, dpFmt, mcq, finish, r1, r2,
+    gcd, lcm, isPrime, pf, pfText, pfHtml, rnd, ord, sum, simp, ps, commas, ds, fx, money, B, br, pm, frac, fracN, fracS, fracT, sq, deg, dpWord,
+    tx, polyT, lin, quad, coefT, table, htable, colvec,
+    ACC, f1, svgWrap, sT, sL, sPoly, sC, sE, sP, dot, angArc, rightMark, unit, tick, fit, triSvg, rtSvg, anglesSvg, polygonSvg, shapeSvg, circleSvg,
+    cuboidSvg, cylinderSvg, prismSvg, barSvg, gridSvg, treeSvg,
+  };
+  const dir = require('path').join(__dirname, 'maths-y9s');
+  const fsx = require('fs');
+  if (fsx.existsSync(dir)) for (const f of fsx.readdirSync(dir).filter((x) => x.endsWith('.cjs')).sort()) require(require('path').join(dir, f))(H);
+}
 
 // ============================================================================
 // Public API

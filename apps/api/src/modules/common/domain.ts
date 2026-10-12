@@ -44,7 +44,17 @@ export function styleStatus(r?: ProgressRow | null): StyleStatus {
 }
 
 // ---------- exams catalogue ----------
-export interface ExamDef { id: string; subject: string; year: number; term: number; kind: string; tier?: string; name: string; questions: number; minutes: number; topicId?: string; weightCurrent?: number; scope: (t: Topic) => boolean }
+export interface ExamDef { id: string; subject: string; year: number; term: number; kind: string; tier?: string; name: string; questions: number; minutes: number; topicId?: string; weightCurrent?: number; balanced?: boolean; blurb?: string; scope: (t: Topic) => boolean }
+
+// Year 9 maths units as the school teaches them (from the school's knowledge organisers). School exams cover every
+// topic in a unit at least once.
+export const SCHOOL_Y9_UNITS: { id: string; name: string; term: number; topics: string[] }[] = [
+  { id: 'algebra', name: 'Reasoning with Algebra', term: 1, topics: ['y9-straight-line-graphs', 'y9-formulae', 'y9-equations-both-sides', 'y9-inequalities', 'y9-conjectures', 'y9-expanding-double'] },
+  { id: 'constructing', name: 'Constructing in 2D & 3D', term: 1, topics: ['y9-3d-shapes', 'y9-volume-surface-area', 'y9-constructions'] },
+  { id: 'number', name: 'Reasoning with Number', term: 2, topics: ['y9-number-skills', 'y9-percentage-change', 'y9-maths-money', 'y9-standard-form'] },
+  { id: 'geometry', name: 'Reasoning with Geometry', term: 2, topics: ['y9-angle-deduction', 'y9-polygons', 'y9-transformations', 'y9-pythagoras', 'y9-enlargement', 'y9-ratio-proportion', 'y9-direct-proportion', 'y9-rates-graphs', 'y9-speed-distance-time', 'y9-density'] },
+  { id: 'representations', name: 'Representations', term: 3, topics: ['y9-probability-diagrams', 'y9-relative-frequency', 'y9-nonlinear-graphs'] },
+];
 export function buildExams(content: ContentService): ExamDef[] {
   const exams: ExamDef[] = [];
   for (const sub of content.subjects) {
@@ -59,6 +69,17 @@ export function buildExams(content: ContentService): ExamDef[] {
       add({ id: `${pre}y${y}-autumn`, year: y, term: 1, kind: 'checkpoint', name: `Year ${y} ${label}Autumn Checkpoint`, questions: 12, minutes: 25, match: (t) => t.year === y && t.term === 1 });
       add({ id: `${pre}y${y}-spring`, year: y, term: 2, kind: 'checkpoint', name: `Year ${y} ${label}Spring Checkpoint`, questions: 12, minutes: 25, match: (t) => t.year === y && t.term <= 2 });
       add({ id: `${pre}y${y}-summer`, year: y, term: 3, kind: 'end-of-year', name: `Year ${y} ${label}End-of-Year Exam`, questions: 20, minutes: 45, match: (t) => t.year <= y, weightCurrent: y });
+    }
+    if (sub.id === 'maths') {
+      const ids = (u: { topics: string[] }) => u.topics.filter((id) => content.getTopic(id));
+      for (const u of SCHOOL_Y9_UNITS) {
+        const list = ids(u); if (list.length < 2) continue;
+        exams.push({ id: `school-y9-${u.id}`, subject: 'maths', year: 9, term: u.term, kind: 'school', balanced: true, name: `School Unit Test: ${u.name}`, questions: Math.max(12, list.length * 2), minutes: 30,
+          blurb: `Covers every topic in your school’s “${u.name}” unit`, scope: (t) => list.includes(t.id) });
+      }
+      const all = SCHOOL_Y9_UNITS.flatMap(ids);
+      if (all.length) exams.push({ id: 'school-y9-exam', subject: 'maths', year: 9, term: 3, kind: 'school', balanced: true, name: 'Year 9 School Exam', questions: 35, minutes: 70,
+        blurb: 'Every Year 9 unit your school teaches, in one exam', scope: (t) => all.includes(t.id) });
     }
     const gcse = (t: Topic) => t.subject === sub.id && t.year >= 9;
     if (sub.tiers) {

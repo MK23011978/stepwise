@@ -4,7 +4,7 @@
 // Flexible payloads (generated questions, results, settings) live in JSONB.
 import { sql } from 'drizzle-orm';
 import {
-  type AnyPgColumn, pgTable, pgEnum, text, integer, boolean, timestamp, date, jsonb, primaryKey, index, uniqueIndex,
+  type AnyPgColumn, pgTable, pgEnum, text, integer, boolean, timestamp, date, jsonb, primaryKey, index, uniqueIndex, real,
 } from 'drizzle-orm/pg-core';
 
 const ts = (name: string) => timestamp(name, { withTimezone: true, mode: 'string' });
@@ -331,6 +331,24 @@ export const chatReports = pgTable('chat_reports', {
   createdAt: createdAt(),
   closedAt: ts('closed_at'),
 }, (t) => [index('chat_reports_status_idx').on(t.status, t.createdAt)]);
+
+// ---------- school results (entered by the student or parent) ----------
+export const schoolResults = pgTable('school_results', {
+  id: text('id').primaryKey(),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  subject: text('subject').notNull(),
+  title: text('title').notNull(), // e.g. "Autumn assessment", "Unit test: Reasoning with Algebra"
+  unit: text('unit'), // optional school unit id (maths Year 9 units)
+  takenOn: date('taken_on', { mode: 'string' }).notNull(),
+  score: real('score').notNull(),
+  maxScore: real('max_score').notNull(),
+  grade: text('grade'), // as the school reports it: "6", "5+", "B", "Working at"
+  targetGrade: text('target_grade'),
+  notes: text('notes'),
+  createdBy: text('created_by'),
+  createdAt: createdAt(),
+  updatedAt: ts('updated_at'),
+}, (t) => [index('school_results_student_idx').on(t.studentId, t.takenOn)]);
 
 // ---------- platform ----------
 export const auditLog = pgTable('audit_log', {

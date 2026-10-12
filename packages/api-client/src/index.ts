@@ -108,6 +108,12 @@ export function createApiClient(opts: ClientOptions = {}) {
       act: (id: string, tid: string, b: In<typeof S.GiftActionBody>) => patch(`/students/${id}/gifts/${tid}`, b),
       settings: (id: string, b: In<typeof S.GiftSettingsBody>) => put(`/students/${id}/gifts/settings`, b),
     },
+    schoolResults: {
+      list: (id: string) => get(`/students/${id}/school-results`),
+      add: (id: string, b: In<typeof S.SchoolResultBody>) => post(`/students/${id}/school-results`, b),
+      update: (id: string, rid: string, b: In<typeof S.SchoolResultPatch>) => patch(`/students/${id}/school-results/${rid}`, b),
+      remove: (id: string, rid: string) => del(`/students/${id}/school-results/${rid}`),
+    },
     social: {
       heartbeat: () => post('/presence'),
       overview: () => get('/social'),

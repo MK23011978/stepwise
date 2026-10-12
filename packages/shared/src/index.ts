@@ -86,6 +86,24 @@ export const FriendApproveBody = z.object({ approve: z.boolean() });
 export const SocialSettingsBody = z.object({ showOnline: z.boolean().optional(), chatEnabled: z.boolean().optional() });
 export const ReportPatchBody = z.object({ status: z.enum(['open', 'closed']) });
 
+// ---------- school results ----------
+export const SchoolResultBody = z.object({
+  subject: z.string().min(1).max(40),
+  title: z.string().trim().min(1, 'Name the test, e.g. Autumn assessment').max(120),
+  unit: z.string().max(40).nullish(),
+  takenOn: IsoDate,
+  score: z.coerce.number().min(0, 'Score can’t be negative').max(10000),
+  maxScore: z.coerce.number().positive('Out of must be more than 0').max(10000),
+  grade: z.string().trim().max(20).nullish(),
+  targetGrade: z.string().trim().max(20).nullish(),
+  notes: z.string().trim().max(500).nullish(),
+}).refine((b) => b.score <= b.maxScore, { message: 'Score can’t be more than the total', path: ['score'] });
+export const SchoolResultPatch = z.object({
+  subject: z.string().min(1).max(40).optional(), title: z.string().trim().min(1).max(120).optional(), unit: z.string().max(40).nullish(), takenOn: IsoDate.optional(),
+  score: z.coerce.number().min(0).max(10000).optional(), maxScore: z.coerce.number().positive().max(10000).optional(),
+  grade: z.string().trim().max(20).nullish(), targetGrade: z.string().trim().max(20).nullish(), notes: z.string().trim().max(500).nullish(),
+});
+
 // ---------- billing ----------
 export const PackBody = z.object({ packId: z.string() });
 export const VerifyCardBody = z.object({ setupIntentId: z.string().optional(), demo: z.boolean().optional() });

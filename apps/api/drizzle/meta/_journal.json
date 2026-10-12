@@ -15,6 +15,13 @@
       "when": 1791828527478,
       "tag": "0001_social",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791835288449,
+      "tag": "0002_school_results",
+      "breakpoints": true
     }
   ]
 }

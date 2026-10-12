@@ -10,7 +10,7 @@ import { ErrorBox, Spinner } from '../../ui/bits';
 import { fmtDate } from '../../lib/format';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const KIND_ICON: Record<string, string> = { checkpoint: '🏁', 'end-of-year': '📅', mock: '🎓', topic: '📝' };
+const KIND_ICON: Record<string, string> = { checkpoint: '🏁', 'end-of-year': '📅', mock: '🎓', topic: '📝', school: '🏫' };
 
 export default function ExamsPage() {
   return <StudentGate title="Tests & Mocks" subjectBar>{(c) => <Exams child={c} />}</StudentGate>;
@@ -50,7 +50,7 @@ function ExamCard({ e }: { e: any }) {
     <div className={`card exam-card ${e.locked ? 'locked' : ''}`} style={e.recommended ? { borderColor: 'var(--brand)' } : undefined}>
       <div className="row spread"><span style={{ fontSize: 28 }}>{KIND_ICON[e.kind]}</span>{e.recommended && <span className="pill brand">Your year</span>}</div>
       <div className="ttl">{e.name}</div>
-      <div className="small muted">{e.questions} questions · {e.minutes} minutes · {e.kind === 'mock' ? 'full GCSE content' : e.kind === 'end-of-year' ? `everything up to Year ${e.year}` : `${e.termName} term content`}</div>
+      <div className="small muted">{e.questions} questions · {e.minutes} minutes · {e.blurb ? e.blurb : e.kind === 'mock' ? 'full GCSE content' : e.kind === 'end-of-year' ? `everything up to Year ${e.year}` : `${e.termName} term content`}</div>
       <div className="row spread" style={{ marginTop: 'auto' }}>
         {e.best ? <Link className="pill good" to={`/app/exam/${e.best.id}`}>Best: Grade {e.best.grade} · {e.best.pct}%</Link> : <span className="pill">{e.attempts ? `${e.attempts} attempts` : 'Not attempted'}</span>}
         {e.locked ? <span className="lock-pill">🔒 Unlocks in Year {e.year}</span>

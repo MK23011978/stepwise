@@ -15,7 +15,28 @@ export async function bumpContentVersion(db: Db) {
   await db.insert(s.contentVersion).values({ id: 1, version: 1 }).onConflictDoUpdate({ target: s.contentVersion.id, set: { version: sql`${s.contentVersion.version} + 1`, updatedAt: sql`now()` } });
 }
 
-export async function importContent(db: Db, { overwrite = false } = {}) {
+const countAll = async (db: Db) => {
+  const n = async (t: string) => Number(((await db.execute(sql.raw(`select count(*)::int as n from ${t}`))) as unknown as { rows: { n: number }[] }).rows[0].n);
+  return [await n('topics'), await n('styles'), await n('items'), await n('learn_pages')].join(',');
+};
+
+/** Start-up sync for an existing database: adds topics/styles/items/pages that are new in the seed (never overwrites
+ *  edits), keeps topic and style order in line with the seed, and bumps the content version only if something changed. */
+export async function syncContent(db: Db) {
+  const before = await countAll(db);
+  await importContent(db, { bump: false });
+  const R = require(path.join(ROOT, 'packages/content-seed/registry.cjs'));
+  await db.transaction(async (tx) => {
+    for (const [i, t] of (R.TOPICS as { id: string; styles: string[] }[]).entries()) {
+      await tx.update(s.topics).set({ sortOrder: i }).where(sql`${s.topics.id} = ${t.id} and ${s.topics.sortOrder} <> ${i}`);
+    }
+  });
+  const after = await countAll(db);
+  if (after !== before) await bumpContentVersion(db);
+  return { changed: after !== before, before, after };
+}
+
+export async function importContent(db: Db, { overwrite = false, bump = true } = {}) {
   const R = require(path.join(ROOT, 'packages/content-seed/registry.cjs'));
   const report: Record<string, number> = {};
   const up = async (table: never, rows: Record<string, unknown>[], key: string, name: string) => {
@@ -46,7 +67,7 @@ export async function importContent(db: Db, { overwrite = false } = {}) {
     await up(s.styles as never, styles, 'id', 'styles');
     await up(s.items as never, items, 'id', 'items');
     await up(s.learnPages as never, Object.entries(R.LEARN).filter(([k]) => R.TOPICS.some((t: { id: string }) => t.id === k)).map(([topicId, content]) => ({ topicId, content })), 'topicId', 'learn_pages');
-    await bumpContentVersion(t);
+    if (bump) await bumpContentVersion(t);
     db = save;
   });
   return report;

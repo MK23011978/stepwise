@@ -31,6 +31,15 @@ export function createExamService(deps: Deps, billing: BillingService, rewards: 
     const styles = topics.flatMap((t) => t.styles.map((sid) => ({ sid, t })));
     const pool = exam.weightCurrent ? styles.flatMap((x) => (x.t.year === exam.weightCurrent ? [x, x, x] : [x])) : styles;
     const qs: Q[] = []; const used = new Set<string>();
+    if (exam.balanced) { // every topic at least once, then spread the rest across topics, never repeating a style while unused ones remain
+      const order = shuffle(topics);
+      for (let i = 0; qs.length < exam.questions && i < 1000; i++) {
+        const t = order[i % order.length]; const fresh = t.styles.filter((sid) => !used.has(sid)); const sid = (fresh.length ? fresh : t.styles)[Math.floor(Math.random() * (fresh.length || t.styles.length))];
+        used.add(sid);
+        qs.push({ ...content.generate(sid), styleId: sid, topic: t.name, strand: t.strand, marks: 1 });
+      }
+      return shuffle(qs);
+    }
     for (let i = 0; qs.length < exam.questions && i < 1000; i++) {
       const x = exam.kind === 'topic' ? styles[qs.length % styles.length] : pool[Math.floor(Math.random() * pool.length)];
       if (exam.kind !== 'topic' && used.has(x.sid) && used.size < styles.length) continue;
@@ -59,7 +68,7 @@ export function createExamService(deps: Deps, billing: BillingService, rewards: 
       const mine = attempts.filter((a) => a.examId === e.id && a.submittedAt);
       const best = mine.reduce<typeof mine[number] | null>((b, a) => (!b || (a.pct || 0) > (b.pct || 0) ? a : b), null);
       const active = attempts.find((a) => a.examId === e.id && !a.submittedAt && a.deadline > now);
-      return { id: e.id, subject: e.subject, name: e.name, year: e.year, term: e.term, termName: TERM_NAMES[e.term], kind: e.kind, tier: e.tier || null, questions: e.questions, minutes: e.minutes,
+      return { id: e.id, subject: e.subject, name: e.name, blurb: e.blurb || null, year: e.year, term: e.term, termName: TERM_NAMES[e.term], kind: e.kind, tier: e.tier || null, questions: e.questions, minutes: e.minutes,
         attempts: mine.length, best: best ? { pct: best.pct, grade: gradeOut(best.grade), id: best.id } : null, activeId: active ? active.id : null,
         recommended: e.year === st.yearGroup, locked: e.year > st.yearGroup, hasContent: content.topics.some(e.scope) };
     });

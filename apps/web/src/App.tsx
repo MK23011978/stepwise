@@ -16,7 +16,7 @@ const P = {
   Family: page(() => import('./pages/account/FamilyPage')), Billing: page(() => import('./pages/account/BillingPage')), Settings: page(() => import('./pages/account/SettingsPage')), Help: page(() => import('./pages/account/HelpPage')),
   AdminOverview: page(() => import('./pages/admin/AdminOverviewPage')), AdminUsers: page(() => import('./pages/admin/AdminUsersPage')), AdminUser: page(() => import('./pages/admin/AdminUserPage')),
   AdminPayments: page(() => import('./pages/admin/AdminPaymentsPage')), AdminTickets: page(() => import('./pages/admin/AdminTicketsPage')),
-  Friends: page(() => import('./pages/social/FriendsPage')), AdminReports: page(() => import('./pages/admin/AdminReportsPage')),
+  SchoolResults: page(() => import('./pages/school/SchoolResultsPage')), Friends: page(() => import('./pages/social/FriendsPage')), AdminReports: page(() => import('./pages/admin/AdminReportsPage')),
   AdminCurriculum: page(() => import('./pages/admin/AdminCurriculumPage')), AdminContent: page(() => import('./pages/admin/AdminContentPage')),
 };
 
@@ -51,6 +51,7 @@ export function App() {
         <Route path="/app/certificate/:id" element={app(<P.Certificate />)} />
         <Route path="/app/rewards" element={app(<P.Rewards />)} />
         <Route path="/app/planner" element={app(<P.Planner />)} />
+        <Route path="/app/school-results" element={app(<P.SchoolResults />)} />
         <Route path="/app/friends" element={app(<P.Friends />, ['student'])} />
         <Route path="/app/family" element={app(<P.Family />, ['parent'])} />
         <Route path="/app/billing" element={app(<P.Billing />, ['parent'])} />
