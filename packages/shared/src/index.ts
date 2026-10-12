@@ -74,6 +74,18 @@ export const GiftRequestBody = z.object({ cardId: z.string(), value: z.coerce.nu
 export const GiftActionBody = z.object({ action: z.enum(['approve', 'decline', 'deliver', 'cancel']), reply: z.string().max(200).default(''), code: z.string().max(80).default('') });
 export const GiftSettingsBody = z.object({ enabled: z.boolean(), coinsPerPound: z.coerce.number().int().min(50).max(5000), monthlyLimit: z.coerce.number().int().min(0).max(200), allowed: z.array(z.string()) });
 
+// ---------- friends & chat ----------
+export const FriendRequestBody = z.object({ userId: z.string().optional(), username: z.string().trim().toLowerCase().max(30).optional() })
+  .refine((b) => !!(b.userId || b.username), 'Choose a student or type their username');
+export const ChatMessageBody = z.object({ body: z.string().trim().min(1, 'Type a message').max(500, 'Messages can be up to 500 characters') });
+export const ShareQuestionBody = z.object({ styleId: z.string().optional(), topicId: z.string().optional(), subject: z.string().optional() });
+export const SharedAnswerBody = z.object({ input: z.string().trim().min(1, 'Type an answer first').max(200) });
+export const ChatQuery = z.object({ after: z.string().optional() });
+export const ChatReportBody = z.object({ reason: z.string().trim().min(3, 'Tell us what happened').max(300), messageId: z.string().optional() });
+export const FriendApproveBody = z.object({ approve: z.boolean() });
+export const SocialSettingsBody = z.object({ showOnline: z.boolean().optional(), chatEnabled: z.boolean().optional() });
+export const ReportPatchBody = z.object({ status: z.enum(['open', 'closed']) });
+
 // ---------- billing ----------
 export const PackBody = z.object({ packId: z.string() });
 export const VerifyCardBody = z.object({ setupIntentId: z.string().optional(), demo: z.boolean().optional() });

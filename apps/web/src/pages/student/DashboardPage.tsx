@@ -137,6 +137,10 @@ function Approvals() {
     <div className="card approvals" style={{ marginBottom: 22 }}><div className="card-head"><h3>⏳ Waiting for your approval ({a.data.count})</h3></div>
       {a.data.tasks.map((t: any) => <div key={t.id + t.date} className="ticket"><span style={{ fontSize: 22 }}>📌</span><div className="grow"><b>{t.studentName}</b> finished <b>{t.title}</b><div className="small muted">{fmtDate(t.date)}{t.coins ? ` · ${t.coins} coins on approval` : ''}</div></div>
         <button className="btn sm good" onClick={() => act(t, false)}>Approve</button><button className="btn sm ghost" onClick={() => act(t, true)}>Send back</button></div>)}
+      {(a.data.friends || []).map((f: any) => <div key={f.id + f.studentId} className="ticket"><span style={{ fontSize: 22 }}>👋</span><div className="grow"><b>{f.studentName}</b> wants to be friends with <b>{f.friend.name}</b>
+        <div className="small muted">Year {f.friend.yearGroup} · they can chat once both parents approve</div></div>
+        <button className="btn sm good" onClick={() => api.social.approve(f.studentId, f.id, true).then(() => { toast('Approved', 'good'); qc.invalidateQueries({ queryKey: ['approvals'] }); })}>Approve</button>
+        <button className="btn sm ghost" onClick={() => api.social.approve(f.studentId, f.id, false).then(() => qc.invalidateQueries({ queryKey: ['approvals'] }))}>Decline</button></div>)}
       {a.data.tickets.map((t: any) => <div key={t.id} className="ticket"><span style={{ fontSize: 22 }}>{t.icon}</span><div className="grow"><b>{t.studentName}</b> wants a <b>£{t.value} {t.cardName}</b> gift card
         <div className="small muted">{t.coins} coins · {fmtDate(t.createdAt)} · {t.status}{t.note ? ` · “${t.note}”` : ''}</div></div>
         <Link className="btn sm" to="/app/rewards" onClick={() => s.setChildId(t.studentId)}>Review</Link></div>)}

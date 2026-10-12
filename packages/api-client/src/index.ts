@@ -108,6 +108,28 @@ export function createApiClient(opts: ClientOptions = {}) {
       act: (id: string, tid: string, b: In<typeof S.GiftActionBody>) => patch(`/students/${id}/gifts/${tid}`, b),
       settings: (id: string, b: In<typeof S.GiftSettingsBody>) => put(`/students/${id}/gifts/settings`, b),
     },
+    social: {
+      heartbeat: () => post('/presence'),
+      overview: () => get('/social'),
+      request: (b: In<typeof S.FriendRequestBody>) => post('/social/friends', b),
+      accept: (fid: string) => post(`/social/friends/${fid}/accept`),
+      decline: (fid: string) => post(`/social/friends/${fid}/decline`),
+      block: (fid: string) => post(`/social/friends/${fid}/block`),
+      remove: (fid: string) => del(`/social/friends/${fid}`),
+      messages: (fid: string, after?: string) => get(`/social/friends/${fid}/messages${qs({ after })}`),
+      send: (fid: string, body: string) => post(`/social/friends/${fid}/messages`, { body }),
+      report: (fid: string, b: In<typeof S.ChatReportBody>) => post(`/social/friends/${fid}/report`, b),
+      shareQuestion: (fid: string, b: In<typeof S.ShareQuestionBody> = {}) => post(`/social/friends/${fid}/questions`, b),
+      answerShared: (fid: string, qid: string, input: string) => post(`/social/friends/${fid}/questions/${qid}/answer`, { input }),
+      // parents
+      child: (id: string) => get(`/students/${id}/social`),
+      settings: (id: string, b: In<typeof S.SocialSettingsBody>) => put(`/students/${id}/social`, b),
+      childMessages: (id: string, fid: string) => get(`/students/${id}/friends/${fid}/messages`),
+      approve: (id: string, fid: string, approve: boolean) => post(`/students/${id}/friends/${fid}/approve`, { approve }),
+      // admin
+      reports: () => get('/admin/chat-reports'),
+      closeReport: (rid: string, status: 'open' | 'closed' = 'closed') => patch(`/admin/chat-reports/${rid}`, { status }),
+    },
     lessons: {
       start: (studentId: string, styleId: string) => post('/lessons', { studentId, styleId }),
       startReview: (b: In<typeof S.StartReviewBody>) => post('/reviews', b),

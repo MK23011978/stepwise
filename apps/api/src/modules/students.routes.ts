@@ -94,7 +94,11 @@ const routes: FastifyPluginAsyncZod<{ svc: Services }> = async (app, { svc }) =>
     return { task: r.task, waiting: r.waiting, rewards };
   });
   app.post('/students/:id/tasks/:tid/approve', { config: parentOrAdmin, schema: { ...T('planner'), params: TaskId, body: TaskApproveBody, response: { 200: AnyObject } } }, async (req) => svc.tasks.approve(db, (await studentFor(db, req.user, req.params.id)).id, req.params.tid, req.body));
-  app.get('/approvals', { config: parentOrAdmin, schema: { ...T('planner'), summary: 'Everything waiting for the parent’s decision', response: { 200: AnyObject } } }, async (req) => (req.user!.role === 'parent' ? svc.tasks.approvalsFor(db, req.user!.id) : { tasks: [], tickets: [], count: 0 }));
+  app.get('/approvals', { config: parentOrAdmin, schema: { ...T('planner'), summary: 'Everything waiting for the parent’s decision', response: { 200: AnyObject } } }, async (req) => {
+    if (req.user!.role !== 'parent') return { tasks: [], tickets: [], friends: [], count: 0 };
+    const a = await svc.tasks.approvalsFor(db, req.user!.id); const friends = await svc.social.approvalsFor(db, req.user!.id);
+    return { ...a, friends, count: a.count + friends.length };
+  });
 
   // ----- gift-card tickets -----
   app.get('/students/:id/gifts', { schema: { ...T('gifts'), params: Id, response: { 200: AnyObject } } }, async (req) => svc.gifts.overview(db, await studentFor(db, req.user, req.params.id)));

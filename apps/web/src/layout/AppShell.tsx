@@ -6,20 +6,23 @@ import { useOverlay } from '../ui/overlays';
 import { Avatar, Coin, Icon, Logo } from '../ui/bits';
 import { store } from '../lib/format';
 import { YearSwitcher } from '../features/yearLock';
+import { OnlinePill, useSocial } from '../features/social';
 
 const STUDENT_NAV: [string, string, string][] = [
   ['/app', 'home', 'Dashboard'], ['/app/planner', 'calendar', 'Planner & Tasks'], ['/app/report', 'report', 'Report & Plan'], ['/app/roadmap', 'map', 'Roadmap & Learn'],
   ['/app/progress', 'chart', 'Progress'], ['/app/review', 'repeat', 'Review'], ['/app/exams', 'exam', 'Tests & Mocks'], ['/app/rewards', 'gift', 'Rewards'],
 ];
 const ADMIN_NAV: [string, string, string][] = [
-  ['/admin', 'chart', 'Overview'], ['/admin/users', 'users', 'Users'], ['/admin/payments', 'card', 'Payments'], ['/admin/tickets', 'ticket', 'Gift tickets'], ['/admin/curriculum', 'book', 'Curriculum'],
+  ['/admin', 'chart', 'Overview'], ['/admin/users', 'users', 'Users'], ['/admin/payments', 'card', 'Payments'], ['/admin/tickets', 'ticket', 'Gift tickets'], ['/admin/curriculum', 'book', 'Curriculum'], ['/admin/reports', 'flag', 'Chat reports'],
 ];
+const STUDENT_ONLY: [string, string, string][] = [['/app/friends', 'chat', 'Friends & Chat']];
 const BOTTOM: [string, string, string][] = [['/app', 'home', 'Home'], ['/app/roadmap', 'map', 'Learn'], ['/app/planner', 'calendar', 'Planner'], ['/app/review', 'repeat', 'Review'], ['/app/rewards', 'gift', 'Rewards']];
 
 export function AppShell({ title, admin = false, subjectBar = false, children }: { title: string; admin?: boolean; subjectBar?: boolean; children: ReactNode }) {
   const s = useSession(); const navigate = useNavigate(); const { openModal } = useOverlay();
   const [menu, setMenu] = useState(false); const [dd, setDd] = useState(false);
   const me = s.me!.user; const c = s.child; const role = me.role;
+  const social = useSocial(role === 'student' && !admin);
   const nav2: [string, string, string][] = admin ? [['/app/settings', 'cog', 'Settings']]
     : [...(role === 'parent' ? [['/app/family', 'users', 'Family'], ['/app/billing', 'wallet', 'Billing']] as [string, string, string][] : []), ['/app/help', 'help', 'Help'], ...(role === 'admin' ? [['/admin', 'shield', 'Admin']] as [string, string, string][] : [])];
   const cycleTheme = () => {
@@ -37,7 +40,7 @@ export function AppShell({ title, admin = false, subjectBar = false, children }:
       {menu && <div className="scrim" onClick={() => setMenu(false)} />}
       <aside className={`side ${menu ? 'open' : ''}`} onClick={() => setMenu(false)}>
         <Logo />
-        <nav>{(admin ? ADMIN_NAV : STUDENT_NAV).map(([to, i, l]) => <NavLink key={to} to={to} end={to === '/app' || to === '/admin'} className={({ isActive }) => (isActive ? 'on' : '')}><Icon name={i} />{l}</NavLink>)}</nav>
+        <nav>{(admin ? ADMIN_NAV : role === 'student' ? [...STUDENT_NAV, ...STUDENT_ONLY] : STUDENT_NAV).map(([to, i, l]) => <NavLink key={to} to={to} end={to === '/app' || to === '/admin'} className={({ isActive }) => (isActive ? 'on' : '')}><Icon name={i} />{l}</NavLink>)}</nav>
         <div className="nav-label">{admin ? 'Switch' : 'Account'}</div>
         <nav>{nav2.map(([to, i, l]) => <NavLink key={to} to={to} end className={({ isActive }) => (isActive ? 'on' : '')}><Icon name={i} />{l}</NavLink>)}</nav>
         <div className="bottom">
@@ -54,6 +57,7 @@ export function AppShell({ title, admin = false, subjectBar = false, children }:
         <header className="topbar">
           <button className="menu-btn" aria-label="Menu" onClick={() => setMenu(true)}><Icon name="menu" size={22} /></button>
           <h2>{title}</h2><div className="grow" />
+          {role === 'student' && !admin && <OnlinePill data={social.data} />}
           {c && !admin && <Link className="pill" to="/app/rewards" title="Coins"><Coin n={c.coins || 0} /></Link>}
           <div className="dropdown">
             <button className="row link" style={{ color: 'var(--ink)' }} onClick={() => setDd((x) => !x)}><Avatar u={me} /><span className="small" style={{ fontWeight: 600 }}>{me.name.split(' ')[0]}</span> ▾</button>

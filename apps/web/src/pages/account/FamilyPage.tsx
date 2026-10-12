@@ -7,6 +7,7 @@ import { useSession } from '../../state/session';
 import { useOverlay } from '../../ui/overlays';
 import { AppShell } from '../../layout/AppShell';
 import { ChildForm } from '../../features/ChildForm';
+import { ChildSocial } from '../social/ChildSocial';
 import { Bars, Donut } from '../../ui/charts';
 import { Avatar, ErrorBox, Spinner } from '../../ui/bits';
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -48,6 +49,7 @@ export default function FamilyPage() {
                   <button className="btn sm grow" onClick={() => go(c.id, '/app')}>View dashboard</button>
                   <button className="btn sm ghost" onClick={() => go(c.id, '/app/report')}>📄 Report</button>
                   <button className="btn sm ghost" onClick={() => go(c.id, '/app/rewards')}>🎯 Goals</button>
+                  <button className="btn sm ghost" onClick={() => openModal((close) => <ChildSocial child={kids.find((k) => k.id === c.id) || c} close={close} />, { wide: true })}>👥 Friends</button>
                   <button className="btn sm ghost" onClick={() => openModal((close) => <ChildForm existing={kids.find((k) => k.id === c.id) || c} close={close} />, { wide: true })}>Edit</button>
                 </div>
               </div>

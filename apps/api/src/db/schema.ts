@@ -29,6 +29,7 @@ export const users = pgTable('users', {
   freeAccess: boolean('free_access').notNull().default(false),
   createdAt: createdAt(),
   lastLoginAt: ts('last_login_at'),
+  lastSeenAt: ts('last_seen_at'), // presence heartbeat — "online" = seen in the last 90 seconds
 }, (t) => [
   uniqueIndex('users_email_uq').on(sql`lower(${t.email})`),
   uniqueIndex('users_username_uq').on(sql`lower(${t.username})`),
@@ -106,6 +107,9 @@ export const studentProfiles = pgTable('student_profiles', {
   owned: jsonb('owned').$type<string[]>().notNull().default([]),
   equipped: jsonb('equipped').$type<Record<string, string | null>>().notNull().default({}),
   giftSettings: jsonb('gift_settings').$type<Record<string, unknown> | null>(),
+  // social controls (parent-managed)
+  showOnline: boolean('show_online').notNull().default(true),
+  chatEnabled: boolean('chat_enabled').notNull().default(true),
 });
 
 export const styleProgress = pgTable('style_progress', {
@@ -275,6 +279,58 @@ export const taskCompletions = pgTable('task_completions', {
   completedAt: ts('completed_at').notNull(),
   approvedAt: ts('approved_at'),
 }, (t) => [primaryKey({ columns: [t.taskId, t.day] })]);
+
+// ---------- friends & chat (students only; every friendship needs both parents' approval) ----------
+// a_id < b_id so a pair has exactly one row. status: pending (waiting for the other student) → approval (waiting for parents) → active;
+// or declined / blocked. a_parent_ok / b_parent_ok record each parent's approval.
+export const friendships = pgTable('friendships', {
+  id: text('id').primaryKey(),
+  aId: text('a_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  bId: text('b_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  requestedBy: text('requested_by').notNull(),
+  status: text('status').notNull(),
+  aParentOk: boolean('a_parent_ok').notNull().default(false),
+  bParentOk: boolean('b_parent_ok').notNull().default(false),
+  blockedBy: text('blocked_by'),
+  aReadAt: ts('a_read_at'),
+  bReadAt: ts('b_read_at'),
+  lastMessageAt: ts('last_message_at'),
+  createdAt: createdAt(),
+  updatedAt: ts('updated_at'),
+}, (t) => [uniqueIndex('friendships_pair_uq').on(t.aId, t.bId), index('friendships_b_idx').on(t.bId)]);
+
+export const chatMessages = pgTable('chat_messages', {
+  id: text('id').primaryKey(),
+  friendshipId: text('friendship_id').notNull().references(() => friendships.id, { onDelete: 'cascade' }),
+  senderId: text('sender_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  filtered: boolean('filtered').notNull().default(false), // personal details / bad words were masked
+  kind: text('kind').notNull().default('text'), // text | question
+  refId: text('ref_id'), // shared_questions.id for kind = question
+  createdAt: createdAt(),
+}, (t) => [index('chat_messages_thread_idx').on(t.friendshipId, t.createdAt)]);
+
+// "Solve together": a generated question shared in a chat. The answer never leaves the server until a student has finished.
+export const sharedQuestions = pgTable('shared_questions', {
+  id: text('id').primaryKey(),
+  friendshipId: text('friendship_id').notNull().references(() => friendships.id, { onDelete: 'cascade' }),
+  sharedBy: text('shared_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  styleId: text('style_id').notNull(),
+  question: jsonb('question').notNull(),
+  attempts: jsonb('attempts').$type<Record<string, { tries: number; correct: boolean; input: string; at: string }>>().notNull().default({}),
+  createdAt: createdAt(),
+}, (t) => [index('shared_questions_friendship_idx').on(t.friendshipId)]);
+
+export const chatReports = pgTable('chat_reports', {
+  id: text('id').primaryKey(),
+  friendshipId: text('friendship_id').notNull().references(() => friendships.id, { onDelete: 'cascade' }),
+  messageId: text('message_id'),
+  reporterId: text('reporter_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  reason: text('reason').notNull(),
+  status: text('status').notNull().default('open'), // open | closed
+  createdAt: createdAt(),
+  closedAt: ts('closed_at'),
+}, (t) => [index('chat_reports_status_idx').on(t.status, t.createdAt)]);
 
 // ---------- platform ----------
 export const auditLog = pgTable('audit_log', {

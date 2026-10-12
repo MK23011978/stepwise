@@ -16,6 +16,7 @@ const P = {
   Family: page(() => import('./pages/account/FamilyPage')), Billing: page(() => import('./pages/account/BillingPage')), Settings: page(() => import('./pages/account/SettingsPage')), Help: page(() => import('./pages/account/HelpPage')),
   AdminOverview: page(() => import('./pages/admin/AdminOverviewPage')), AdminUsers: page(() => import('./pages/admin/AdminUsersPage')), AdminUser: page(() => import('./pages/admin/AdminUserPage')),
   AdminPayments: page(() => import('./pages/admin/AdminPaymentsPage')), AdminTickets: page(() => import('./pages/admin/AdminTicketsPage')),
+  Friends: page(() => import('./pages/social/FriendsPage')), AdminReports: page(() => import('./pages/admin/AdminReportsPage')),
   AdminCurriculum: page(() => import('./pages/admin/AdminCurriculumPage')), AdminContent: page(() => import('./pages/admin/AdminContentPage')),
 };
 
@@ -50,6 +51,7 @@ export function App() {
         <Route path="/app/certificate/:id" element={app(<P.Certificate />)} />
         <Route path="/app/rewards" element={app(<P.Rewards />)} />
         <Route path="/app/planner" element={app(<P.Planner />)} />
+        <Route path="/app/friends" element={app(<P.Friends />, ['student'])} />
         <Route path="/app/family" element={app(<P.Family />, ['parent'])} />
         <Route path="/app/billing" element={app(<P.Billing />, ['parent'])} />
         <Route path="/app/settings" element={app(<P.Settings />)} />
@@ -59,6 +61,7 @@ export function App() {
         <Route path="/admin/users/:id" element={app(<P.AdminUser />, ['admin'])} />
         <Route path="/admin/payments" element={app(<P.AdminPayments />, ['admin'])} />
         <Route path="/admin/tickets" element={app(<P.AdminTickets />, ['admin'])} />
+        <Route path="/admin/reports" element={app(<P.AdminReports />, ['admin'])} />
         <Route path="/admin/curriculum" element={app(<P.AdminCurriculum />, ['admin'])} />
         <Route path="/admin/content/:topicId" element={app(<P.AdminContent />, ['admin'])} />
         <Route path="*" element={<Navigate to="/" replace />} />

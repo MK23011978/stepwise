@@ -13,6 +13,7 @@ import { createGiftService } from './modules/gifts/gifts.service.js';
 import { createFamilyService } from './modules/family/family.service.js';
 import { createReportService } from './modules/report/report.service.js';
 import { createAdminService } from './modules/admin/admin.service.js';
+import { createSocialService } from './modules/social/social.service.js';
 
 export function createServices(deps: Deps) {
   const tokens = createAuthTokens(deps);
@@ -28,6 +29,7 @@ export function createServices(deps: Deps) {
   const family = createFamilyService(deps);
   const report = createReportService(deps, students, exams, tasks, missions);
   const admin = createAdminService(deps, students, billing, tokens, family);
-  return { deps, tokens, students, auth, billing, rewards, tasks, lessons, exams, missions, gifts, family, report, admin };
+  const social = createSocialService(deps);
+  return { deps, social, tokens, students, auth, billing, rewards, tasks, lessons, exams, missions, gifts, family, report, admin };
 }
 export type Services = ReturnType<typeof createServices>;

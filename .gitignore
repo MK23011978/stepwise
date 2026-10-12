@@ -7,3 +7,4 @@ backups
 *.log
 deploy/vm/*.tar.gz
 .DS_Store
+*.tsbuildinfo
