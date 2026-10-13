@@ -1,6 +1,7 @@
 // Daily reading with a vocabulary focus: a goal (minutes + new words a day), a bookshelf, a reading log where each
 // session needs a short summary, and the student's own word bank practised with spaced repetition.
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { and, asc, desc, eq, gte, lte, sql } from 'drizzle-orm';
@@ -28,7 +29,7 @@ export function textOf(bookId: string): BookText | null {
 let cache: CatalogBook[] | null = null;
 export function catalog(): (CatalogBook & { hasText: boolean })[] {
   if (!cache) { try { cache = require(CATALOG_FILE) as CatalogBook[]; } catch { cache = []; } }
-  return cache.map((b) => ({ ...b, hasText: !!textOf(b.id) }));
+  return cache.map((b) => ({ ...b, hasText: fs.existsSync(path.join(TEXT_DIR, `${b.id}.json`)) }));
 }
 // spare wrong options so a "choose the meaning" question always has four choices
 const SPARE_MEANINGS = ['feeling very tired after hard work', 'easy to see through, like glass', 'unwilling to change your mind', 'happening once every year',
