@@ -2,7 +2,7 @@
 // Year 9 school units: Rotation & Translation, Enlargement & Similarity, Rates (graphs, flow, unit rates),
 // Probability (independent events, Venn diagrams, two-way tables).
 module.exports = (H) => {
-  const { topic, SPEC, nAns, fAns, B, ds, ps, frac, fracN, fracS, simp, deg, svgWrap, sT, sL, sPoly, sC, dot, table, colvec, gcd, ACC, f1 } = H;
+  const { topic, addStyles, SPEC, nAns, fAns, mcq, B, ds, ps, frac, fracN, fracS, simp, deg, svgWrap, sT, sL, sPoly, sC, sP, dot, table, colvec, gcd, ACC, f1, rightMark, fit } = H;
 
   Object.assign(SPEC, {
     'y9-transformations': '1MA1 G1, G7, G8, G24',
@@ -644,6 +644,254 @@ module.exports = (H) => {
         const N = n1 * n2;
         return { html: `${desc} Find the probability of getting ${B(label)}.${v === 0 ? '<br>Sample space:' + sampleTable : ''}`, ...fAns(hits.length, N), hint: 'Draw a sample space grid and count the outcomes that work.',
           steps: [`There are ${n1} × ${n2} = ${N} equally likely outcomes.`, hits.length <= 10 ? `Outcomes that work: ${hits.join(', ')} — ${hits.length} outcome${hits.length === 1 ? '' : 's'}` : `Counting in the grid gives ${hits.length} outcomes that work.`, `P = ${frac(hits.length, N)}${gcd(hits.length, N) > 1 ? ` = ${B(fracS(hits.length, N))}` : ''}`] };
+      }],
+  ]);
+
+  // =================================================================== SCHOOL-AUDIT ADDITIONS (append only — never reorder)
+  const vlist = (V) => V.map(([x, y]) => pt(z(x), z(y))).join(', ');
+  const uniq = (arr) => new Set(arr).size === arr.length;
+
+  addStyles('y9-transformations', [
+    ['Choosing the correct rotated image',
+      'Rotating about a point on the shape: that vertex stays where it is and the rest of the shape turns around it. Rotating about a point outside the shape: the whole shape swings round the centre, keeping the same distance from it. Use tracing paper — pin the centre and turn.',
+      (r) => {
+        const TPL = [[[0, 0], [2, 0], [0, 1]], [[0, 0], [3, 0], [0, 2]], [[0, 0], [1, 0], [1, 2]], [[0, 0], [2, 0], [2, 1], [0, 3]], [[0, 0], [3, 0], [1, 1]]];
+        for (;;) {
+          const tpl = r.pick(TPL); const ox = r.int(-5, 3), oy = r.int(-5, 3); const P = tpl.map(([x, y]) => [x + ox, y + oy]);
+          const on = r.chance(); const key = r.pick(['cw', 'acw', 'half']); const R = ROT[key];
+          const C = on ? r.pick(P) : [r.int(-4, 4), r.int(-4, 4)];
+          if (!on && P.some(([x, y]) => x === C[0] && y === C[1])) continue;
+          const rotAbout = (k, c) => P.map(([x, y]) => { const [a, b] = ROT[k].f(x - c[0], y - c[1]); return [a + c[0], b + c[1]]; });
+          const img = rotAbout(key, C);
+          if (img.some(([x, y]) => Math.abs(x) > 7 || Math.abs(y) > 7)) continue;
+          const other = key === 'cw' ? 'acw' : key === 'acw' ? 'cw' : 'cw';
+          const C2 = C[0] === 0 && C[1] === 0 ? [1, 1] : [0, 0];
+          const opts = [vlist(img), vlist(rotAbout(other, C)), vlist(rotAbout(key, C2)), vlist(P.map(([x, y]) => [2 * C[0] - x, y]))];
+          if (!uniq(opts)) continue;
+          const names = 'PQRS'.slice(0, P.length).split('');
+          const where = on ? `about its vertex ${names[P.findIndex(([x, y]) => x === C[0] && y === C[1])]}${pt(...C)}` : `about the point C${pt(...C)}`;
+          return { html: `Shape ${names.join('')} has vertices ${P.map((p, i) => names[i] + pt(...p)).join(', ')}. It is rotated ${B(R.w)} ${where}. Which list gives the vertices of the image, in the order ${names.join(', ')}?`,
+            diagram: cgrid(-7, 7, -7, 7, [{ poly: P, fill: true, labels: names }, ...(on ? [] : [{ pt: C, label: 'C', cross: true }])]), ...mcq(r, opts, 0), hint: 'Work out where each vertex is relative to the centre, rotate that, then add it back on.',
+            steps: [on ? `The centre is a vertex, so ${pt(...C)} is invariant.` : `The centre C${pt(...C)} is not on the shape, so every vertex moves.`, `${R.w} turn: ${R.rule} for each position measured from the centre.`, `e.g. ${names[1]} is ${pt(P[1][0] - C[0], P[1][1] - C[1])} from the centre; this turns to ${pt(z(img[1][0] - C[0]), z(img[1][1] - C[1]))}, so its image is ${pt(z(img[1][0]), z(img[1][1]))}`, `Image vertices: ${B(opts[0])}`] };
+        }
+      }],
+    ['Describing & comparing transformations',
+      'To describe a transformation fully, name it and give all its details: a reflection needs the mirror line; a rotation needs the centre, the angle and the direction; a translation needs the column vector. A reflection flips a shape over; a rotation or translation does not.',
+      (r) => {
+        if (r.chance(0.15)) {
+          const k = r.int(0, 2);
+          const Q = [['a rotation', 'The centre, the angle and the direction of turn'], ['a reflection', 'The equation of the mirror line'], ['a translation', 'The column vector']][k];
+          const pool = ['The centre, the angle and the direction of turn', 'The equation of the mirror line', 'The column vector', 'The angle and the direction only', 'The scale factor and the centre'];
+          const opts = [Q[1], ...pool.filter((x) => x !== Q[1]).slice(0, 3)];
+          return { html: `Which information is needed to describe ${B(Q[0])} fully?`, ...mcq(r, opts, 0), hint: 'Think about what someone would need to know to copy the transformation exactly.',
+            steps: [`To describe ${Q[0]} fully you must give: ${Q[1].toLowerCase()}.`, k === 0 ? 'Without the centre, the same angle could put the shape in many different places.' : k === 1 ? 'The mirror line fixes where the image is.' : 'The vector tells you how far across and how far up or down to move.'] };
+        }
+        const SH = [[[0, 0], [3, 0], [3, 1], [1, 1], [1, 2], [0, 2]], [[0, 0], [2, 0], [2, 1], [1, 1], [1, 3], [0, 3]], [[0, 0], [3, 0], [3, 1], [0, 2]]];
+        for (;;) {
+          const tpl = r.pick(SH); const ox = r.int(-6, 4), oy = r.int(-6, 4); const A = tpl.map(([x, y]) => [x + ox, y + oy]);
+          const t = r.pick(['trans', 'refl', 'rot']); let Bs, opts;
+          if (t === 'trans') {
+            const a = r.nz(-6, 6), b = r.nz(-6, 6); Bs = A.map(([x, y]) => [x + a, y + b]);
+            opts = [`Translation by ${colvec(a, b)}`, `Translation by ${colvec(b, a)}`, `Translation by ${colvec(-a, -b)}`, `Reflection in the line <i>x</i> = ${ds(ox + a / 2)}`];
+          } else if (t === 'refl') {
+            const vert = r.chance(); const k = r.int(-3, 3);
+            Bs = A.map(([x, y]) => (vert ? [2 * k - x, y] : [x, 2 * k - y]));
+            const ax = vert ? 'x' : 'y', ox2 = vert ? 'y' : 'x';
+            opts = [`Reflection in the line <i>${ax}</i> = ${ds(k)}`, `Reflection in the line <i>${ox2}</i> = ${ds(k)}`, `Reflection in the line <i>${ax}</i> = ${ds(k + 1)}`, `Rotation 180° about ${pt(vert ? k : 0, vert ? 0 : k)}`];
+          } else {
+            const key = r.pick(['cw', 'acw', 'half']); const R = ROT[key]; const C = [r.int(-3, 3), r.int(-3, 3)];
+            Bs = A.map(([x, y]) => { const [a, b] = R.f(x - C[0], y - C[1]); return [a + C[0], b + C[1]]; });
+            const oth = key === 'half' ? '90° clockwise' : ROT[key === 'cw' ? 'acw' : 'cw'].w;
+            opts = [`Rotation ${R.w} about ${pt(...C)}`, `Rotation ${oth} about ${pt(...C)}`, `Rotation ${R.w} (no centre given)`, `Rotation ${R.w} about ${pt(C[0] + 1, C[1] - 1)}`];
+          }
+          if ([...A, ...Bs].some(([x, y]) => Math.abs(x) > 7 || Math.abs(y) > 7) || !uniq(opts) || Bs.every(([x, y], i) => x === A[i][0] && y === A[i][1])) continue;
+          const kind = t === 'trans' ? 'translation' : t === 'refl' ? 'reflection' : 'rotation';
+          return { html: `Shape A has a vertex at ${pt(...A[0])}. Which statement describes ${B('fully')} the single transformation that maps shape A onto shape B?`,
+            diagram: cgrid(-7, 7, -7, 7, [{ poly: A, fill: true, name: 'A' }, { poly: Bs, c: '#10b981', fill: true, name: 'B' }]), ...mcq(r, opts, 0), hint: 'Is B flipped over (reflection), turned (rotation) or just slid (translation)? Then check every detail.',
+            steps: [t === 'refl' ? 'B is a mirror image of A (it is flipped over), so it is a reflection.' : t === 'rot' ? 'B is turned compared with A but not flipped, so it is a rotation.' : 'B faces the same way as A and is the same way up, so it is a translation.',
+              `The vertex ${pt(...A[0])} of A maps to ${pt(z(Bs[0][0]), z(Bs[0][1]))} on B.`, `A full description of a ${kind}: ${B(opts[0])}`] };
+        }
+      }],
+  ]);
+
+  addStyles('y9-enlargement', [
+    ['Choosing the correct enlargement',
+      'Draw rays from the centre through each vertex, or count how far each vertex is from the centre and multiply by the scale factor. A common mistake is to keep one vertex fixed or to measure from the origin instead of the given centre.',
+      (r) => {
+        const [n, d] = r.pick([[2, 1], [3, 1], [1, 2], [3, 2]]); const k = n / d;
+        for (;;) {
+          const C = [r.int(0, 8), r.int(0, 8)]; const m = d === 2 ? 2 : 1, lim = k >= 3 ? 2 : 3;
+          const D = [0, 1, 2].map(() => [r.int(-lim, lim) * m, r.int(-lim, lim) * m]);
+          const area = (D[1][0] - D[0][0]) * (D[2][1] - D[0][1]) - (D[2][0] - D[0][0]) * (D[1][1] - D[0][1]);
+          const P = D.map(([x, y]) => [C[0] + x, C[1] + y]); const I = D.map(([x, y]) => [C[0] + x * k, C[1] + y * k]);
+          if (!area || D.some(([x, y]) => !x && !y) || [...P, ...I].some(([x, y]) => x < 0 || y < 0 || x > 12 || y > 12)) continue;
+          const O2 = C[0] === 0 && C[1] === 0 ? [1, 1] : [0, 0];
+          const opts = [vlist(I), vlist(P.map(([x, y]) => [O2[0] + (x - O2[0]) * k, O2[1] + (y - O2[1]) * k])), vlist(P.map(([x, y]) => [P[0][0] + (x - P[0][0]) * k, P[0][1] + (y - P[0][1]) * k])), vlist(D.map(([x, y]) => [C[0] + x * (k + 1), C[1] + y * (k + 1)]))];
+          if (!uniq(opts)) continue;
+          const sfT = sfHtml(n, d);
+          return { html: `Triangle ABC has vertices A${pt(...P[0])}, B${pt(...P[1])} and C${pt(...P[2])}. It is enlarged by scale factor ${B(sfT)}, centre O${pt(...C)}. Which list gives the vertices of the image A′, B′, C′?`,
+            diagram: cgrid(0, 12, 0, 12, [{ poly: P, fill: true, labels: ['A', 'B', 'C'] }, { pt: C, label: 'O', cross: true }]), ...mcq(r, opts, 0), hint: 'Measure each vertex from O, multiply by the scale factor, then measure from O again.',
+            steps: [`From O: A is ${pt(...D[0])}, B is ${pt(...D[1])}, C is ${pt(...D[2])} away (across, up).`, `Multiply by ${sfT}: ${pt(D[0][0] * k, D[0][1] * k)}, ${pt(D[1][0] * k, D[1][1] * k)}, ${pt(D[2][0] * k, D[2][1] * k)}`, `Add to O${pt(...C)}: ${B(opts[0])}`] };
+        }
+      }],
+  ]);
+
+  // container side views for flow graphs (x 0..120, y 0..150 box)
+  const CONT = [
+    ['cylinder', 'A straight line', (o) => sPoly([[o + 20, 20], [o + 20, 140], [o + 100, 140], [o + 100, 20]], { open: true })],
+    ['cone with its point at the bottom (it gets wider as it goes up)', 'A curve that gets less steep', (o) => sPoly([[o + 5, 20], [o + 60, 140], [o + 115, 20]], { open: true })],
+    ['flask that gets narrower towards the top', 'A curve that gets steeper', (o) => sPoly([[o + 45, 20], [o + 5, 140], [o + 115, 140], [o + 75, 20]], { open: true })],
+    ['bottle: a wide cylinder with a narrow cylindrical neck on top', 'Two straight lines, the second one steeper', (o) => sPoly([[o + 45, 15], [o + 45, 70], [o + 10, 70], [o + 10, 140], [o + 110, 140], [o + 110, 70], [o + 75, 70], [o + 75, 15]], { open: true })],
+    ['container: a narrow cylinder with a wide cylinder on top', 'Two straight lines, the second one less steep', (o) => sPoly([[o + 10, 15], [o + 10, 80], [o + 45, 80], [o + 45, 140], [o + 75, 140], [o + 75, 80], [o + 110, 80], [o + 110, 15]], { open: true })],
+    ['hemispherical bowl', 'A curve that gets less steep', (o) => sP(`M${o + 5},30 A55,55 0 0 0 ${o + 115},30`)],
+  ];
+  const GRAPHS = ['A straight line', 'A curve that gets steeper', 'A curve that gets less steep', 'Two straight lines, the second one steeper', 'Two straight lines, the second one less steep'];
+  const WHY = {
+    'A straight line': 'The width never changes, so the depth rises by the same amount every second.',
+    'A curve that gets less steep': 'The container gets wider higher up, so each layer takes longer to fill and the depth rises more and more slowly.',
+    'A curve that gets steeper': 'The container gets narrower higher up, so the depth rises faster and faster.',
+    'Two straight lines, the second one steeper': 'Each part has straight sides, so each part gives a straight line; the narrow part fills faster, so its line is steeper.',
+    'Two straight lines, the second one less steep': 'Each part has straight sides; the wide top part fills more slowly, so the second line is less steep.',
+  };
+
+  addStyles('y9-rates-graphs', [
+    ['Flow graphs: depth against time',
+      'When water flows in at a constant rate, the depth rises steadily in a container with straight vertical sides (a straight-line graph). Where the container is narrow the depth rises quickly (steep); where it is wide the depth rises slowly (less steep).',
+      (r) => {
+        if (r.chance(0.35)) {
+          const v = r.int(0, 1);
+          if (v === 0) { const A = r.pick([50, 80, 100, 120, 150, 200, 250, 400, 500]); const rate = A * r.pick([0.5, 1, 1.5, 2, 2.5, 3, 4]); const g = rate / A;
+            return { html: `A cylindrical tank has a base area of ${B(`${A} cm²`)}. Water flows in at a constant ${B(`${ds(rate)} cm³ per second`)}. How fast does the depth of water rise, in cm per second?`, unit: 'cm/s', ...nAns(g, { unit: 'cm per second' }), hint: 'Each second, the new water forms a layer with that base area.',
+              steps: ['Volume of a layer = base area × depth, so depth = volume ÷ base area.', `Rise per second = ${ds(rate)} ÷ ${A} = ${B(ds(g))} cm per second`] }; }
+          const t1 = r.int(2, 6), d1 = t1 * r.int(2, 6); const T = r.int(t1 + 1, 15);
+          return { html: `A cylinder is filled with water at a constant rate. After ${B(`${t1} minutes`)} the water is ${B(`${d1} cm`)} deep. Assuming it does not overflow, how deep is the water after ${B(`${T} minutes`)}?`, unit: 'cm', ...nAns(d1 / t1 * T, { unit: 'cm' }), hint: 'A cylinder fills steadily, so depth is proportional to time.',
+            steps: [`Rate of rise = ${d1} ÷ ${t1} = ${ds(d1 / t1)} cm per minute`, `Depth after ${T} minutes = ${ds(d1 / t1)} × ${T} = ${B(ds(d1 / t1 * T))} cm`] };
+        }
+        const [name, ans, draw] = r.pick(CONT);
+        const opts = [ans, ...r.sample(GRAPHS.filter((g) => g !== ans), 3)];
+        const who2 = r.pick(['A garden centre', 'A scientist', 'Jess', 'A café', 'A chemistry class', 'Omar']);
+        return { html: `${who2} fills a ${B(name)} with water at a constant rate. Which describes the graph of depth of water against time?`, diagram: svgWrap(240, 160, draw(60), false), ...mcq(r, opts, 0), hint: 'Narrow → depth rises quickly (steep). Wide → depth rises slowly (shallow).',
+          steps: [WHY[ans], `So the graph is: ${B(ans)}`] };
+      }],
+  ]);
+
+  addStyles('y9-probability-diagrams', [
+    ['The probability scale & single events',
+      'Probability = number of ways the event can happen ÷ total number of equally likely outcomes. On the probability scale 0 is impossible, ½ is an even chance and 1 is certain; the more likely an event, the closer it is to 1.',
+      (r) => {
+        const v = r.int(0, 3);
+        if (v <= 1) {
+          const cols = r.sample(['red', 'blue', 'green', 'yellow', 'purple', 'white'], r.int(2, 4)); const cnt = cols.map(() => r.int(1, 9)); const T = cnt.reduce((a, b) => a + b, 0);
+          const i = r.int(0, cols.length - 1); const item = r.pick(['counters', 'beads', 'sweets', 'marbles', 'balls']);
+          const not = v === 1; const num = not ? T - cnt[i] : cnt[i];
+          return { html: `A bag contains ${cols.map((c, j) => `${cnt[j]} ${c}`).join(', ').replace(/, ([^,]*)$/, ' and $1')} ${item}. One is taken at random. What is the probability that it is ${not ? B(`not ${cols[i]}`) : B(cols[i])}?`, ...fAns(num, T), hint: 'Number of ways it can happen ÷ total number.',
+            steps: [`Total = ${cnt.join(' + ')} = ${T}`, not ? `Not ${cols[i]}: ${T} − ${cnt[i]} = ${num}` : `${cols[i]}: ${num}`, `P = ${frac(num, T)}${gcd(num, T) > 1 ? ` = ${B(fracS(num, T))}` : ''}`] };
+        }
+        if (v === 2) {
+          const W = ['Impossible', 'Unlikely', 'Even chance', 'Likely', 'Certain'];
+          const vals = [[0, '0'], [1, '1'], [2, '0.5'], [2, '50%'], [2, frac(1, 2)], [2, frac(3, 6)], [1, '0.1'], [1, '0.3'], [1, '15%'], [1, frac(1, 5)], [1, frac(2, 7)], [3, '0.8'], [3, '0.65'], [3, '90%'], [3, frac(3, 4)], [3, frac(5, 8)], [1, frac(1, 100)], [3, '0.99'], [4, '100%'], [0, '0%']];
+          const [k, s] = r.pick(vals); const ev = r.pick(['an event', 'it snowing in London tomorrow', 'a spinner landing on blue', 'a team winning its next match', 'a train being late']);
+          return { html: `The probability of ${ev} is ${B(s)}. Which word best describes how likely it is?`, ...mcq(r, W, k), hint: 'Place the value on a scale from 0 to 1. One half is an even chance.',
+            steps: [`${s} on the 0–1 scale is ${k === 0 ? 'at 0' : k === 4 ? 'at 1' : k === 2 ? 'exactly halfway' : k === 1 ? 'between 0 and ½' : 'between ½ and 1'}.`, `So it is ${B(W[k].toLowerCase())}.`] };
+        }
+        const n = r.pick([4, 5, 6, 8, 10]); const m = r.int(1, n - 1);
+        const x0 = 30, Wd = 300, y = 60; let body = sL(x0, y, x0 + Wd, y);
+        for (let i = 0; i <= n; i++) body += sL(x0 + i * Wd / n, y - 8, x0 + i * Wd / n, y + 8);
+        body += sT(x0, y + 22, '0', { fs: 12 }) + sT(x0 + Wd, y + 22, '1', { fs: 12 }) + sL(x0 + m * Wd / n, y - 40, x0 + m * Wd / n, y - 12, { c: ACC, w: 2.5 }) + sPoly([[x0 + m * Wd / n - 6, y - 20], [x0 + m * Wd / n, y - 10], [x0 + m * Wd / n + 6, y - 20]], { c: ACC, fill: ACC });
+        return { html: `The probability scale from 0 to 1 is split into ${B(n)} equal intervals. The arrow shows the probability that ${r.pick(['Amir is picked for the team', 'a seed grows', 'a bus is on time', 'a counter taken from a bag is red', 'a light bulb lasts a year'])}. What is this probability?`, diagram: svgWrap(360, 100, body, false), ...fAns(m, n), hint: `Each interval is worth 1 ÷ ${n}.`,
+          steps: [`${n} equal intervals, so each is worth ${frac(1, n)}.`, `The arrow is at mark ${m}: ${m} × ${frac(1, n)} = ${fracN(m, n)}${gcd(m, n) > 1 ? ` = ${B(fracS(m, n))}` : ''}`] };
+      }],
+  ]);
+
+  // ---------------------------------------------------------------- existing Year 9 topics
+  const TRIPLES = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [6, 8, 10], [9, 12, 15], [20, 21, 29], [9, 40, 41]];
+  addStyles('y9-pythagoras', [
+    ['Squares, square roots and cube roots',
+      'A square number is a number multiplied by itself (6² = 36). The square root undoes squaring: √36 = 6 because 6 × 6 = 36. A cube root undoes cubing: ∛64 = 4 because 4 × 4 × 4 = 64. Learn the squares up to 15² and cubes up to 5³.',
+      (r) => {
+        const v = r.int(0, 4);
+        if (v === 0) { const n = r.int(2, 20); return { html: `Work out ${B(`${n}<sup>2</sup>`)}.`, ...nAns(n * n), hint: 'Multiply the number by itself.', steps: [`${n}<sup>2</sup> = ${n} × ${n}`, `= ${B(n * n)}`] }; }
+        if (v === 1) { const n = r.int(2, 20); return { html: `Work out ${B(`√${n * n}`)}.`, ...nAns(n), hint: 'Which number multiplied by itself gives this?', steps: [`${n} × ${n} = ${n * n}`, `So √${n * n} = ${B(n)}`] }; }
+        if (v === 2) { const n = r.int(1, 10); const cube = r.chance(); return cube ? { html: `Work out ${B(`${n}<sup>3</sup>`)}.`, ...nAns(n ** 3), hint: 'Multiply the number by itself three times.', steps: [`${n}<sup>3</sup> = ${n} × ${n} × ${n}`, `= ${B(n ** 3)}`] }
+          : { html: `Work out the cube root of ${B(n ** 3)} (∛${n ** 3}).`, ...nAns(n), hint: 'Which number times itself three times gives this?', steps: [`${n} × ${n} × ${n} = ${n ** 3}`, `So ∛${n ** 3} = ${B(n)}`] }; }
+        if (v === 3) { const s = r.int(2, 15); const u = r.pick(['cm', 'm', 'mm']); return { html: `A square ${r.pick(['tile', 'garden', 'photo', 'table top'])} has an area of ${B(`${s * s} ${u}²`)}. How long is each side?`, unit: u, ...nAns(s, { unit: u }), hint: 'Area of a square = side × side, so side = √area.', steps: [`side = √${s * s}`, `= ${B(s)} ${u} (because ${s} × ${s} = ${s * s})`] }; }
+        let k; do { k = r.int(3, 220); } while (Number.isInteger(Math.sqrt(k)));
+        const a = Math.floor(Math.sqrt(k));
+        return { html: `${B(`√${k}`)} lies between two consecutive whole numbers. Which two?`, answer: `${a}, ${a + 1}`, check: { type: 'pair', values: [a, a + 1] }, answerHtml: B(`${a} and ${a + 1}`), format: 'Give both numbers separated by a comma, e.g. 4, 5', hint: 'Find the square numbers either side of it.',
+          steps: [`${a}<sup>2</sup> = ${a * a} and ${a + 1}<sup>2</sup> = ${(a + 1) ** 2}`, `${a * a} &lt; ${k} &lt; ${(a + 1) ** 2}, so √${k} is between ${B(a)} and ${B(a + 1)}.`] };
+      }],
+    ['Identifying the hypotenuse & checking for a right angle',
+      'The hypotenuse is the longest side of a right-angled triangle; it is always opposite the right angle. A triangle is right-angled exactly when the squares of the two shorter sides add up to the square of the longest side: a² + b² = c².',
+      (r) => {
+        const v = r.int(0, 2);
+        if (v === 0) {
+          const L = r.pick([['a', 'b', 'c'], ['p', 'q', 'r'], ['x', 'y', 'z'], ['d', 'e', 'f'], ['k', 'm', 'n'], ['s', 't', 'u']]); const lab = r.shuffle(L);
+          const l1 = r.int(3, 6), l2 = r.int(2, 5); const th = r.int(0, 11) * 30;
+          const raw = [[0, 0], [l1, 0], [0, l2]].map(([x, y]) => [x * Math.cos(th * Math.PI / 180) - y * Math.sin(th * Math.PI / 180), x * Math.sin(th * Math.PI / 180) + y * Math.cos(th * Math.PI / 180)]);
+          const P = fit(raw, 360, 230, 40); const g = [(P[0][0] + P[1][0] + P[2][0]) / 3, (P[0][1] + P[1][1] + P[2][1]) / 3];
+          let body = sPoly(P) + rightMark(P[0], P[1], P[2]);
+          [[0, 1], [1, 2], [2, 0]].forEach(([i, j], e) => { const mx = (P[i][0] + P[j][0]) / 2, my = (P[i][1] + P[j][1]) / 2; const dx = mx - g[0], dy = my - g[1], l = Math.hypot(dx, dy) || 1; body += sT(mx + dx / l * 16, my + dy / l * 16, lab[e], { it: true, b: true }); });
+          return { html: `The diagram shows a right-angled triangle with sides labelled ${L.join(', ')}. Which side is the hypotenuse?`, diagram: svgWrap(360, 230, body, false), ...mcq(r, L.map((x) => `<i>${x}</i>`), L.indexOf(lab[1])), hint: 'Find the right angle — the hypotenuse is the side opposite it.',
+            steps: ['The small square marks the right angle.', `The side opposite the right angle is the longest side: ${B(`<i>${lab[1]}</i>`)}.`] };
+        }
+        if (v === 1) {
+          const [a0, b0, c0] = r.pick(TRIPLES); const k = r.pick([1, 1, 2, 3]); let [a, b, c] = [a0 * k, b0 * k, c0 * k];
+          const yes = r.chance(); if (!yes) { if (r.chance()) c += r.pick([-1, 1, 2]); else a += r.pick([-1, 1]); }
+          const sides = r.shuffle([a, b, c]); const [p, q, h] = [a, b, c].sort((x, y) => x - y);
+          const isR = p * p + q * q === h * h;
+          return { html: `A triangle has sides of ${B(sides.map((s) => `${s} cm`).join(', '))}. Is it a right-angled triangle? Answer yes or no.`, ...textAns(isR ? 'yes' : 'no', isR ? ['yes', 'y'] : ['no', 'n']), format: 'Type yes or no', hint: 'Check whether the two shorter sides squared add up to the longest side squared.',
+            steps: [`Longest side: ${h} cm, so check ${p}<sup>2</sup> + ${q}<sup>2</sup> against ${h}<sup>2</sup>.`, `${p}<sup>2</sup> + ${q}<sup>2</sup> = ${p * p} + ${q * q} = ${p * p + q * q}`, `${h}<sup>2</sup> = ${h * h}`, isR ? `They are equal, so ${B('yes')}, it is right-angled.` : `They are not equal, so ${B('no')}, it is not right-angled.`] };
+        }
+        const [a0, b0] = r.pick(TRIPLES); const k = r.pick([1, 1, 2]); const A = (a0 * k) ** 2, Bq = (b0 * k) ** 2; const ask = r.chance();
+        return { html: `Squares are drawn on each side of a right-angled triangle. The squares on the two shorter sides have areas ${B(`${A} cm²`)} and ${B(`${Bq} cm²`)}. ${ask ? 'What is the area of the square on the hypotenuse?' : 'How long is the hypotenuse?'}`, unit: ask ? 'cm²' : 'cm', ...nAns(ask ? A + Bq : Math.sqrt(A + Bq), { unit: ask ? 'cm²' : 'cm' }), hint: 'Pythagoras says the two smaller squares together make the big square.',
+          steps: [`Area on hypotenuse = ${A} + ${Bq} = ${A + Bq} cm²`, ...(ask ? [`= ${B(A + Bq)} cm²`] : [`Hypotenuse = √${A + Bq} = ${B(Math.sqrt(A + Bq))} cm`])] };
+      }],
+    ['Pythagoras on a coordinate grid',
+      'To find the length of a sloping line on a grid, make it the hypotenuse of a right-angled triangle: count the horizontal and vertical distances (check the scale), then use a² + b² = c² and square root.',
+      (r) => {
+        let A, Bp; do { A = [r.int(0, 8), r.int(0, 8)]; Bp = [r.int(0, 8), r.int(0, 8)]; } while (A[0] === Bp[0] || A[1] === Bp[1]);
+        const nm = r.pick(['AB', 'PQ', 'CD', 'MN', 'ST']);
+        const sc = r.pick([[1, '', 'units'], [1, '', 'units'], [2, ' Each grid square represents 2 cm.', 'cm'], [5, ' Each grid square represents 5 m.', 'm'], [10, ' The grid is a map where each square is 10 m.', 'm'], [100, ' The grid is a map where each square is 100 m.', 'm']]);
+        const dx = Math.abs(Bp[0] - A[0]) * sc[0], dy = Math.abs(Bp[1] - A[1]) * sc[0]; const L = Math.sqrt(dx * dx + dy * dy); const exact = Number.isInteger(L);
+        return { html: `The diagram shows the line segment ${B(nm)} on a coordinate grid.${sc[1]} Work out the length of ${nm}${sc[2] === 'units' ? '' : ` in ${sc[2]}`}.${exact ? '' : ' Give your answer to 1 decimal place.'}`,
+          diagram: (() => { const s = cgrid(0, 8, 0, 8, [{ pt: A, label: nm[0] }, { pt: Bp, label: nm[1] }]); const X = (x) => 24 + x * 270 / 8, Y = (y) => 24 + (8 - y) * 270 / 8; return s.replace('</svg>', sL(X(A[0]), Y(A[1]), X(Bp[0]), Y(Bp[1]), { c: ACC, w: 2.5 }) + '</svg>'); })(),
+          ...(sc[2] === 'units' ? {} : { unit: sc[2] }), ...(exact ? nAns(L) : nAns(L, { dp: 1 })), hint: 'Draw the right-angled triangle under the line: count across and up.',
+          steps: [`${nm[0]}${pt(...A)} and ${nm[1]}${pt(...Bp)}: across ${Math.abs(Bp[0] - A[0])} squares, up/down ${Math.abs(Bp[1] - A[1])} squares.`, ...(sc[0] > 1 ? [`With ${sc[0]} ${sc[2]} per square: ${dx} ${sc[2]} and ${dy} ${sc[2]}.`] : []), `${nm}<sup>2</sup> = ${dx}<sup>2</sup> + ${dy}<sup>2</sup> = ${dx * dx + dy * dy}`, `${nm} = √${dx * dx + dy * dy} = ${B(exact ? ds(L) : (Math.round(L * 10) / 10).toFixed(1))}${sc[2] === 'units' ? '' : ' ' + sc[2]}`] };
+      }],
+  ]);
+
+  const MATS = [['wood', 0.7], ['ice', 0.9], ['plastic', 1.2], ['glass', 2.5], ['aluminium', 2.7], ['iron', 7.9], ['copper', 8.9], ['lead', 11.3]];
+  addStyles('y9-density', [
+    ['Density of prisms',
+      'For a prism, volume = area of cross-section × length (depth). Find the volume first, then use mass = density × volume or density = mass ÷ volume.',
+      (r) => {
+        const [mat, dens] = r.pick(MATS); const v = r.int(0, 2);
+        if (v === 0) { const l = r.int(2, 12), w = r.int(2, 10), h = r.int(2, 8); const V = l * w * h;
+          return { html: `A solid cuboid of ${mat} measures ${B(`${l} cm × ${w} cm × ${h} cm`)}. The density of ${mat} is ${B(`${ds(dens)} g/cm³`)}. Work out its mass.`, unit: 'g', ...nAns(V * dens, { unit: 'g' }), hint: 'Volume first, then mass = density × volume.',
+            steps: [`Volume = ${l} × ${w} × ${h} = ${V} cm³`, `Mass = ${ds(dens)} × ${V} = ${B(ds(V * dens))} g`] }; }
+        if (v === 1) { const b = r.int(2, 8) * 2, h = r.int(2, 9), L = r.int(3, 15); const A = b * h / 2, V = A * L;
+          return { html: `A triangular prism of ${mat} has a cross-section that is a triangle with base ${B(`${b} cm`)} and perpendicular height ${B(`${h} cm`)}. The prism is ${B(`${L} cm`)} long. The density of ${mat} is ${B(`${ds(dens)} g/cm³`)}. Work out the mass of the prism.`, unit: 'g', ...nAns(V * dens, { unit: 'g' }), hint: 'Area of the triangle × length gives the volume.',
+            steps: [`Area of cross-section = ½ × ${b} × ${h} = ${A} cm²`, `Volume = ${A} × ${L} = ${V} cm³`, `Mass = ${ds(dens)} × ${V} = ${B(ds(V * dens))} g`] }; }
+        const A = r.int(4, 30), L = r.int(2, 12); const V = A * L; const M = V * dens;
+        return { html: `A prism has a cross-sectional area of ${B(`${A} cm²`)} and a length of ${B(`${L} cm`)}. Its mass is ${B(`${ds(M)} g`)}. Work out the density of the material.`, unit: 'g/cm³', ...nAns(dens, { unit: 'g/cm³' }), hint: 'Density = mass ÷ volume.',
+          steps: [`Volume = ${A} × ${L} = ${V} cm³`, `Density = ${ds(M)} ÷ ${V} = ${B(ds(dens))} g/cm³`] };
+      }],
+  ]);
+
+  addStyles('y9-relative-frequency', [
+    ['Relative frequency from a table',
+      'Relative frequency = frequency of the outcome ÷ total number of trials. Add the frequency column first to find the total. Relative frequency × number of future trials estimates how many times the outcome will happen.',
+      (r) => {
+        const [cols, ctx] = r.pick([[['Red', 'Blue', 'Green'], r.pick(['A spinner is spun', 'A counter is taken from a bag and replaced'])], [['Red', 'Yellow', 'Blue', 'Green'], r.pick(['A spinner is spun', 'A sweet is taken from a jar and replaced'])], [['Heads', 'Tails'], 'A biased coin is flipped'], [['1', '2', '3', '4'], 'A four-sided spinner is spun'], [['Win', 'Draw', 'Lose'], 'A player plays a computer game']]);
+        const N = r.pick([20, 25, 40, 50, 100]); const fr = split(r, N, cols.length, 1); const i = r.int(0, cols.length - 1); const v = r.int(0, 2);
+        const tbl = (miss) => table([['Outcome', 'Frequency'], ...cols.map((c, j) => [c, j === miss ? '?' : String(fr[j])])]);
+        if (v === 0) return { html: `${ctx} ${N} times and the results are recorded.${tbl(-1)}Work out the relative frequency of ${B(cols[i])}. Give your answer as a decimal.`, ...nAns(fr[i] / N), hint: 'Frequency ÷ total.',
+          steps: [`Total = ${fr.join(' + ')} = ${N}`, `Relative frequency = ${fr[i]} ÷ ${N} = ${B(ps(fr[i] / N))}`] };
+        if (v === 1) { const M = r.pick([100, 200, 300, 500, 1000]); const e = M * fr[i] / N;
+          return { html: `${ctx} ${N} times.${tbl(-1)}Use the relative frequency of ${B(cols[i])} to estimate how many times it would happen in ${B(M)} trials.`, ...nAns(e), hint: 'Relative frequency × number of trials.',
+            steps: [`Relative frequency = ${fr[i]} ÷ ${N} = ${ps(fr[i] / N)}`, `Estimate = ${ps(fr[i] / N)} × ${M} = ${B(ds(e))}`] }; }
+        return { html: `${ctx} ${B(N)} times in total. One frequency is missing.${tbl(i)}Work out the relative frequency of ${B(cols[i])}. Give your answer as a decimal.`, ...nAns(fr[i] / N), hint: 'Find the missing frequency from the total first.',
+          steps: [`Missing frequency = ${N} − ${fr.filter((_, j) => j !== i).join(' − ')} = ${fr[i]}`, `Relative frequency = ${fr[i]} ÷ ${N} = ${B(ps(fr[i] / N))}`] };
       }],
   ]);
 };

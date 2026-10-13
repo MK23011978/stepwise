@@ -2,7 +2,7 @@
 // Year 9 school units: formulae, conjectures & proof, non-linear graphs & inequalities,
 // plus one extra style for straight-line graphs (lines parallel to the axes & real-life graphs).
 module.exports = (H) => {
-  const { topic, addStyles, SPEC, nAns, fAns, eAns, mcq, B, ds, ps, frac, fracN, simp, gcd, lcm, isPrime, tx, lin, quad, polyT, coefT, br, pm, money, htable, svgWrap, sT, sL, sP, sC, sPoly, dot, ACC, f1, gridSvg } = H;
+  const { topic, addStyles, SPEC, nAns, fAns, eAns, mcq, B, ds, ps, frac, fracN, simp, gcd, lcm, isPrime, pf, pfText, pfHtml, tx, lin, quad, polyT, coefT, br, pm, money, htable, svgWrap, sT, sL, sP, sC, sPoly, dot, ACC, f1, gridSvg } = H;
 
   Object.assign(SPEC, {
     'y9-formulae': '1MA1 A2, A3, A5, A9',
@@ -586,6 +586,207 @@ module.exports = (H) => {
         const item = r.pick([['box of pens', 'boxes of pens'], ['bag of sand', 'bags of sand'], ['cinema ticket', 'cinema tickets'], ['litre of paint', 'litres of paint'], ['kg of apples', 'kg of apples']]); const p = r.pick([1.5, 2.3, 2.5, 3.2, 4.5, 6, 7.5, 12, 0.8, 1.25]); const k1 = r.int(2, 6); let k2; do { k2 = r.int(3, 15); } while (k2 === k1);
         return { html: `The cost of buying ${item[1]} is ${B('directly proportional')} to the number bought, so the graph of cost against number is a straight line through the origin. It passes through (${k1}, ${ds(p * k1)}), where the cost is in pounds.<br>Work out the cost of ${k2} ${item[1]}.`, ...nAns(p * k2, { money: true }), hint: 'A direct proportion graph starts at (0, 0), so the gradient is the price of one.',
           steps: [`The line passes through (0, 0): buying 0 costs £0.`, `Gradient = ${ds(p * k1)} ÷ ${k1} = ${money(p)} per ${item[0]}`, `Cost of ${k2} = ${k2} × ${money(p)} = ${B(money(p * k2))}`] };
+      }],
+  ]);
+
+  // ================================================================ school-audit additions (appended — never reorder)
+  const ineqAcc = (op, k, v = 'x') => [`${v}${op}${ps(k)}`, `${ps(k)}${FLIP[op]}${v}`];
+  const ineqH = (op, k, v = 'x') => `${iv(v)} ${OPH[op]} ${ds(k)}`;
+
+  addStyles('y9-straight-line-graphs', [
+    ['Tables of values for straight lines',
+      'To plot y = mx + c, choose some x-values, substitute each one to find y, and write the results in a table. Each column gives a coordinate pair (x, y) to plot. Two points are enough for a line, but a third checks your working.',
+      (r) => {
+        const m = r.nz(-5, 5), c = r.int(-10, 10); const set = r.pick([[-3, 0, 3], [-2, -1, 0, 1, 2], [-3, -2, -1, 0, 1, 2, 3], [0, 1, 2, 3, 4], [-4, -2, 0, 2, 4]]);
+        const f = (x) => m * x + c; const eq = tx(`y=${lin(m, c)}`);
+        if (r.chance(0.3)) { // find x from y
+          const qx = r.pick(set.filter((x) => x !== 0)); const yv = f(qx);
+          return { html: `The point with ${iv('y')}-coordinate ${B(ds(yv))} lies on the line ${B(eq)}. Find its ${iv('x')}-coordinate.`, ...nAns(qx), answerLabel: '<i>x</i> =', hint: 'Substitute the y-value and solve the equation for x.',
+            steps: [`${ds(yv)} = ${tx(lin(m, c))}`, `${c ? `${c > 0 ? 'Subtract' : 'Add'} ${Math.abs(c)}: ` : ''}${ds(yv - c)} = ${tx(coefT(m, 'x'))}`, `Divide by ${ds(m)}: <i>x</i> = ${B(ds(qx))}`] };
+        }
+        const qx = r.pick(set);
+        const tbl = htable(['<i>x</i>', ...set.map((x) => ds(x))], [['<i>y</i>', ...set.map((x) => (x === qx ? B('?') : ds(f(x))))]]);
+        return { html: `Complete the table of values for ${B(eq)}.${tbl}Work out the missing value.`, ...nAns(f(qx)), answerLabel: '<i>y</i> =', hint: `Multiply x by ${ds(m)}, then ${c >= 0 ? 'add' : 'subtract'} ${Math.abs(c)}.`,
+          steps: [`Substitute <i>x</i> = ${ds(qx)}: <i>y</i> = ${m === 1 ? '' : m === -1 ? '−' : ds(m) + ' × '}${m === -1 ? `(${ds(qx)})` : br(qx)}${c ? pm(c) : ''}`, `${c ? `= ${ds(m * qx)}${pm(c)} = ` : '= '}${B(ds(f(qx)))}`, `This gives the coordinate pair (${ds(qx)}, ${ds(f(qx))}) to plot.`, `Check: each time x goes up by ${set[1] - set[0]}, y changes by ${ds(m * (set[1] - set[0]))}, because the gradient is ${ds(m)}.`] };
+      }],
+    ['Comparing gradients & intercepts',
+      'In y = mx + c the gradient m tells you the steepness: the bigger the number (ignoring its sign), the steeper the line; a negative m slopes down. Lines with the same m are parallel. Lines with the same c cross the y-axis at the same point, (0, c).',
+      (r) => {
+        const mode = r.int(0, 4); const eqm = (m, c) => tx(`y=${lin(m, c)}`);
+        if (mode === 0) {
+          const ms = r.sample([1, 2, 3, 4, 5, 6], 4).map((v) => v * r.sign()); const cs = ms.map(() => r.int(-6, 6));
+          const big = ms.reduce((b, v, i) => (Math.abs(v) > Math.abs(ms[b]) ? i : b), 0);
+          const opts = ms.map((m, i) => eqm(m, cs[i])); const order = [big, ...[0, 1, 2, 3].filter((i) => i !== big)];
+          return { html: 'Which of these lines is the steepest?', ...mcq(r, order.map((i) => opts[i]), 0), hint: 'Compare the gradients, ignoring the sign. The intercept does not affect steepness.',
+            steps: [`Gradients: ${ms.map((m) => ds(m)).join(', ')}`, `Ignoring signs, the largest is ${Math.abs(ms[big])}.`, `So ${B(opts[big])} is the steepest${ms[big] < 0 ? ' (it slopes downwards)' : ''}.`] };
+        }
+        if (mode === 1) {
+          const m = r.nz(-5, 5), c = r.int(-8, 8); let d; do { d = r.int(-8, 8); } while (d === c); const k = r.int(2, 4);
+          const ok = r.chance() ? eqm(m, d) : tx(`${k}y=${lin(k * m, k * d)}`);
+          let m2; do { m2 = r.nz(-6, 6); } while (Math.abs(m2) === Math.abs(m));
+          const wr = [eqm(-m, c), eqm(c === 0 || c === m ? m + 1 : c, m), eqm(m2, c)];
+          if (new Set([ok, ...wr]).size < 4) wr[1] = eqm(m + (m > 0 ? 1 : -1), d);
+          return { html: `Which line is ${B('parallel')} to ${B(eqm(m, c))}?`, ...mcq(r, [ok, ...wr], 0), hint: 'Parallel lines have the same gradient. Rearrange to y = mx + c if needed.',
+            steps: [`The gradient of ${eqm(m, c)} is ${ds(m)}.`, /=/.test(ok) && ok.includes(`${k}`) && !ok.startsWith('<i>y</i>') ? `${ok}: divide by ${k} to get ${eqm(m, d)}, gradient ${ds(m)}.` : `${ok} also has gradient ${ds(m)}.`, `Same gradient, so they are parallel: ${B(ok)}`] };
+        }
+        if (mode === 2) {
+          const c = r.nz(-8, 8); const ms = r.sample([1, 2, 3, 4, 5, -1, -2, -3], 4); const ok = eqm(ms[0], c);
+          const cs = r.sample([-8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8].filter((v) => v !== c && v !== -c), 2);
+          const wr = [eqm(c, ms[1]), eqm(ms[2], cs[0]), eqm(ms[3], cs[1])];
+          if (new Set([ok, ...wr]).size < 4) wr[0] = eqm(ms[1], -c);
+          return { html: `Which line crosses the ${iv('y')}-axis at the same point as ${B(eqm(r.pick([6, 7, -4]), c))}?`, ...mcq(r, [ok, ...wr], 0), hint: 'The y-intercept is the number c in y = mx + c (not the coefficient of x).',
+            steps: [`The y-intercept is c = ${ds(c)}, the point (0, ${ds(c)}).`, `${ok} also has c = ${ds(c)}.`, `So ${B(ok)} crosses at the same place.`] };
+        }
+        if (mode === 3) {
+          const m = r.nz(-6, 6), c = r.int(-9, 9);
+          return { html: `Write down the coordinates of the point where ${B(eqm(m, c))} crosses the ${iv('y')}-axis.`, answer: `0, ${c}`, check: { type: 'pair', values: [0, c], ordered: true }, answerHtml: B(`(0, ${ds(c)})`), format: 'Type the coordinates x, y, e.g. 0, −3', hint: 'On the y-axis, x = 0.',
+            steps: [`On the y-axis <i>x</i> = 0, so <i>y</i> = ${ds(m)} × 0${pm(c)} = ${ds(c)}.`, `The y-intercept is always (0, c): ${B(`(0, ${ds(c)})`)}`] };
+        }
+        let m, c; do { m = r.nz(-3, 3); c = r.int(-4, 4); } while (Math.abs(m) + Math.abs(c) > 7);
+        return { html: 'Find the equation of the straight line shown on the grid. Give it in the form <i>y</i> = <i>mx</i> + <i>c</i>.', diagram: gridSvg([{ x: 0, y: c, label: ' ' }, { x: 1, y: m + c, label: ' ' }], { m, c }), ...eAns(lin(m, c), { vars: ['x'] }), answerLabel: '<i>y</i> =', format: 'Type the right-hand side, e.g. 2x+1', hint: 'Read the y-intercept, then count how far the line goes up (or down) for each 1 across.',
+          steps: [`The line crosses the y-axis at (0, ${ds(c)}), so c = ${ds(c)}.`, `For every 1 across, the line goes ${m > 0 ? 'up' : 'down'} ${Math.abs(m)}, so m = ${ds(m)}${m > 0 ? ' (positive: it slopes upwards)' : ' (negative: it slopes downwards)'}.`, `Equation: ${B(eqm(m, c))}`] };
+      }],
+  ]);
+
+  addStyles('y9-inequalities', [
+    ['Inequalities with unknowns on both sides',
+      'Solve these just like equations with unknowns on both sides: expand any brackets, collect the x terms on the side with more x, then the numbers on the other side. Keep the inequality sign the same unless you multiply or divide by a negative.',
+      (r) => {
+        const op = r.pick(['<', '>', '<=', '>=']); const k = r.int(-8, 8); let a, b, c, d, lhs, rhs, pre = [];
+        if (r.chance(0.5)) { do { a = r.int(2, 9); c = r.int(1, 8); } while (a === c); b = r.int(-15, 15); d = (a - c) * k + b; lhs = lin(a, b); rhs = lin(c, d); }
+        else { let p, q, rr, sv; do { p = r.int(2, 7); rr = r.int(1, 6); q = r.nz(-6, 6); sv = ((p - rr) * k + p * q) / rr; } while (p === rr || !Number.isInteger(sv) || sv === 0);
+          a = p; b = p * q; c = rr; d = rr * sv; lhs = `${p}(${lin(1, q)})`; rhs = rr === 1 ? lin(1, sv) : `${rr}(${lin(1, sv)})`; pre = [`Expand: ${tx(lin(a, b))} ${OPH[op]} ${tx(lin(c, d))}`]; }
+        const res = a > c ? op : FLIP[op]; const lo = Math.min(a, c), hi = Math.max(a, c);
+        const st = a > c
+          ? [`Subtract ${tx(coefT(c, 'x'))} from both sides: ${tx(lin(a - c, b))} ${OPH[op]} ${ds(d)}`, `${b >= 0 ? 'Subtract' : 'Add'} ${Math.abs(b)}: ${tx(coefT(a - c, 'x'))} ${OPH[op]} ${ds(d - b)}`]
+          : [`Subtract ${tx(coefT(a, 'x'))} from both sides: ${ds(b)} ${OPH[op]} ${tx(lin(c - a, d))}`, `${d >= 0 ? 'Subtract' : 'Add'} ${Math.abs(d)}: ${ds(b - d)} ${OPH[op]} ${tx(coefT(c - a, 'x'))}`];
+        void lo; void hi;
+        const t = k + (res[0] === '>' ? 1 : -1);
+        return { html: `Solve ${B(`${tx(lhs)} ${OPH[op]} ${tx(rhs)}`)}`, answer: `x${res}${ps(k)}`, check: { type: 'text', accept: ineqAcc(res, k) }, answerHtml: B(ineqH(res, k)), format: 'Type e.g. x>3 or x<=-2 (you can use ≤ and ≥)', hint: 'Collect the x terms on the side with the larger number of x so the coefficient stays positive.',
+          steps: [...pre, ...st, `Divide by ${Math.abs(a - c)}${a > c ? '' : ' and write x first (the sign turns round)'}: ${B(ineqH(res, k))}`, `Check with <i>x</i> = ${ds(t)}: left side ${ds(a * t + b)}, right side ${ds(c * t + d)} — ${ds(a * t + b)} ${OPH[op]} ${ds(c * t + d)} ✓`] };
+      }],
+    ['Forming and solving inequalities',
+      'Turn the words into an inequality: “more than” or “greater than” is >, “less than” is <, “at least” is ≥ and “at most” or “no more than” is ≤. Then solve it like an equation.',
+      (r) => {
+        const W = r.pick([['is greater than', '>'], ['is more than', '>'], ['is less than', '<'], ['is at least', '>='], ['is at most', '<='], ['is no more than', '<=']]); const op = W[1];
+        const k = r.int(2, 6), a = r.int(1, 15), s = r.int(-3, 12); const form = r.int(0, 3);
+        let words, lhsT, val, st;
+        if (form === 0) { words = `${a} more than ${k} times my number`; lhsT = lin(k, a); val = k * s + a; st = [`Subtract ${a}: ${tx(coefT(k, 'x'))} ${OPH[op]} ${ds(val - a)}`, `Divide by ${k}`]; }
+        else if (form === 1) { words = `${a} less than ${k} times my number`; lhsT = lin(k, -a); val = k * s - a; st = [`Add ${a}: ${tx(coefT(k, 'x'))} ${OPH[op]} ${ds(val + a)}`, `Divide by ${k}`]; }
+        else if (form === 2) { words = `${k} times the sum of my number and ${a}`; lhsT = `${k}(${lin(1, a)})`; val = k * (s + a); st = [`Divide by ${k}: ${tx(lin(1, a))} ${OPH[op]} ${ds(s + a)}`, `Subtract ${a}`]; }
+        else { words = `my number multiplied by ${k}, then increased by ${a}`; lhsT = lin(k, a); val = k * s + a; st = [`Subtract ${a}: ${tx(coefT(k, 'x'))} ${OPH[op]} ${ds(val - a)}`, `Divide by ${k}`]; }
+        const who = r.pick(['Amir', 'Bella', 'Chen', 'Dana', 'Ellis', 'Femi']);
+        return { html: `${who} says: “${words.charAt(0).toUpperCase() + words.slice(1)} ${W[0]} ${ds(val)}.”<br>Call ${who}’s number ${iv('x')}. Form an inequality and solve it to find the possible values of ${iv('x')}.`, answer: `x${op}${ps(s)}`, check: { type: 'text', accept: ineqAcc(op, s) }, answerHtml: B(ineqH(op, s)), format: 'Type the solution, e.g. x>3 or x<=-2', hint: `“${W[0].replace('is ', '')}” means ${OPH[op]}.`,
+          steps: [`Form the inequality: ${B(`${tx(lhsT)} ${OPH[op]} ${ds(val)}`)}`, ...st.map((x, i) => (i === st.length - 1 ? `${x}: ${B(ineqH(op, s))}` : x)), `${who}’s number is any value ${op[0] === '>' ? 'greater than' : 'less than'}${op.length === 2 ? ' or equal to' : ''} ${ds(s)}.`] };
+      }],
+  ]);
+
+  addStyles('y9-formulae', [
+    ['Substituting to form and solve equations',
+      'Substituting the values you know into a formula turns it into an equation. If the unknown is not the subject, solve the equation using inverse operations (or rearrange first, then substitute).',
+      (r) => {
+        const T = r.pick([
+          () => { const u = r.int(0, 20), a = r.int(2, 9), t = r.int(2, 12); const v = u + a * t; return { f: tx('v=u+at'), vals: [['v', v], ['u', u], ['a', a]], want: 't', ans: t, st: [`${v} = ${u} + ${a}<i>t</i>`, `Subtract ${u}: ${v - u} = ${a}<i>t</i>`, `Divide by ${a}`] }; },
+          () => { const l = r.int(4, 30), w = r.int(2, 25); const P = 2 * l + 2 * w; return { f: 'P = 2<i>l</i> + 2<i>w</i>', vals: [['P', P], ['l', l]], want: 'w', ans: w, st: [`${P} = 2 × ${l} + 2<i>w</i> = ${2 * l} + 2<i>w</i>`, `Subtract ${2 * l}: ${P - 2 * l} = 2<i>w</i>`, 'Divide by 2'] }; },
+          () => { let b, h; do { b = r.int(2, 16); h = r.int(2, 16); } while ((b * h) % 2); const A = (b * h) / 2; return { f: `A = ${frac(1, 2)}<i>bh</i>`, vals: [['A', A], ['b', b]], want: 'h', ans: h, st: [`${A} = ${frac(1, 2)} × ${b} × <i>h</i>`, `${A} = ${b / 2}<i>h</i>`, `Divide by ${b / 2}`] }; },
+          () => { const k = r.int(-8, 20); const C = 5 * k, F = 9 * k + 32; return { f: `<i>F</i> = ${frac('9<i>C</i>', 5)} + 32`, vals: [['F', F]], want: 'C', ans: C, st: [`${ds(F)} = ${frac('9<i>C</i>', 5)} + 32`, `Subtract 32: ${ds(F - 32)} = ${frac('9<i>C</i>', 5)}`, `Multiply by 5: ${ds(5 * (F - 32))} = 9<i>C</i>, then divide by 9`] }; },
+          () => { const Fx = r.pick([20, 25, 30, 40, 50]), R = r.int(10, 45), h = r.int(1, 9); const C = Fx + R * h; return { f: tx(`C=${Fx}+${R}h`), vals: [['C', C]], want: 'h', ans: h, st: [`${C} = ${Fx} + ${R}<i>h</i>`, `Subtract ${Fx}: ${C - Fx} = ${R}<i>h</i>`, `Divide by ${R}`] }; },
+          () => { const m = r.nz(-6, 6), x = r.nz(-9, 9), c = r.int(-12, 12); const y = m * x + c; return { f: tx('y=mx+c'), vals: [['y', y], ['m', m], ['c', c]], want: 'x', ans: x, st: [`${ds(y)} = ${ds(m)}<i>x</i>${pm(c)}`, `${c >= 0 ? 'Subtract' : 'Add'} ${Math.abs(c)}: ${ds(y - c)} = ${ds(m)}<i>x</i>`, `Divide by ${ds(m)}`] }; },
+          () => { const s = r.int(20, 90), t = r.int(2, 9); const d = s * t; return { f: tx('d=st'), vals: [['d', d], ['s', s]], want: 't', ans: t, st: [`${d} = ${s}<i>t</i>`, `Divide by ${s}`] }; },
+        ])();
+        return { html: `Use the formula ${B(T.f)} to find ${iv(T.want)} when ${given(T.vals)}.`, ...nAns(T.ans), answerLabel: `<i>${T.want}</i> =`, hint: `Substitute, then solve the equation for ${T.want}.`,
+          steps: [...T.st.slice(0, -1), `${T.st[T.st.length - 1]}: ${B(`${iv(T.want)} = ${ds(T.ans)}`)}`, 'Substituting into a formula gave an equation, which we then solved.'] };
+      }],
+  ]);
+
+  addStyles('y9-conjectures', [
+    ['HCF, LCM & prime factors',
+      'List factors to find the highest common factor (HCF) and list multiples to find the lowest common multiple (LCM). Any whole number can be split into a product of primes using a factor tree.',
+      (r) => {
+        const mode = r.int(0, 4);
+        if (mode === 0) {
+          const pr = [2, 2, 2, 3, 3, 5, 7, 11]; let n; do { n = r.sample(pr, r.int(2, 4)).reduce((x, y) => x * y, 1) * r.pick([1, 2, 3]); } while (n < 12 || n > 300 || isPrime(n));
+          const f = pf(n); const ans = pfText(f);
+          return { html: `Write ${B(n)} as a product of its prime factors.`, ...eAns(ans, { form: 'primes' }), answerHtml: B(pfHtml(f)), format: 'Type e.g. 2^2×3×5 (use × or * and ^ for powers)', hint: 'Use a factor tree: split into any factor pair, then keep splitting until every branch ends in a prime.',
+            steps: [`Factor tree: keep dividing by primes — ${f.map(([p, e]) => Array(e).fill(p).join(' × ')).join(' × ')}`, `Check: the product is ${n}.`, `${n} = ${B(pfHtml(f))}`] };
+        }
+        let a, b; do { const g = r.pick([2, 3, 4, 5, 6, 8, 9, 10, 12]); a = g * r.int(1, 6); b = g * r.int(1, 6); } while (a === b || a < 6 || b < 6 || a > 72 || b > 72);
+        const facs = (n) => { const o = []; for (let i = 1; i <= n; i++) if (n % i === 0) o.push(i); return o; };
+        if (mode === 1) { const h = gcd(a, b);
+          return { html: `Find the highest common factor (HCF) of ${B(a)} and ${B(b)}.`, ...nAns(h), hint: 'List the factors of each number and find the biggest one they share.',
+            steps: [`Factors of ${a}: ${facs(a).join(', ')}`, `Factors of ${b}: ${facs(b).join(', ')}`, `The highest factor in both lists is ${B(h)}.`] }; }
+        if (mode === 2) { const l = lcm(a, b); const mult = (n) => Array.from({ length: Math.min(8, l / n + 1) }, (_, i) => n * (i + 1));
+          return { html: `Find the lowest common multiple (LCM) of ${B(a)} and ${B(b)}.`, ...nAns(l), hint: 'List the multiples of each number until one appears in both lists.',
+            steps: [`Multiples of ${a}: ${mult(a).join(', ')}${l / a + 1 > 8 ? ', …' : ''}`, `Multiples of ${b}: ${mult(b).join(', ')}${l / b + 1 > 8 ? ', …' : ''}`, `The first number in both lists is ${B(l)}.`] }; }
+        if (mode === 3) { let x, y; do { x = r.int(3, 20); y = r.int(3, 20); } while (x === y || lcm(x, y) > 120 || gcd(x, y) === Math.min(x, y));
+          const [what, unit] = r.pick([['Two buses leave the station together. One leaves every', 'minutes'], ['Two lighthouses flash together. One flashes every', 'seconds'], ['Two runners start together on a circular track. One completes a lap every', 'minutes']]);
+          return { html: `${what} ${x} ${unit} and the other every ${y} ${unit}. After how many ${unit} will this next happen together?`, ...nAns(lcm(x, y)), unit, hint: 'You need a common multiple — the lowest one.',
+            steps: [`Multiples of ${x}: ${Array.from({ length: Math.min(6, lcm(x, y) / x) }, (_, i) => x * (i + 1)).join(', ')}${lcm(x, y) / x > 6 ? ', …' : ''}`, `Multiples of ${y}: ${Array.from({ length: Math.min(6, lcm(x, y) / y) }, (_, i) => y * (i + 1)).join(', ')}${lcm(x, y) / y > 6 ? ', …' : ''}`, `LCM = ${B(lcm(x, y))} ${unit}`] }; }
+        const h = gcd(a, b); const [thing, grp] = r.pick([['red pens', 'blue pens', 'packs'], ['apples', 'oranges', 'bags'], ['boys', 'girls', 'teams']].map((t) => [t, t[2]]));
+        return { html: `There are ${a} ${thing[0]} and ${b} ${thing[1]}. They are shared into identical ${grp} with nothing left over, each ${grp.slice(0, -1)} containing the same mix. What is the greatest number of ${grp} that can be made?`, ...nAns(h), hint: 'The number of groups must divide both numbers exactly — find the HCF.',
+          steps: [`The number of ${grp} must be a factor of ${a} and of ${b}.`, `HCF of ${a} and ${b} = ${h}`, `So ${B(h)} ${grp}, each with ${a / h} ${thing[0]} and ${b / h} ${thing[1]}.`] };
+      }],
+    ['True or false? Testing patterns',
+      'A pattern that works for the first few cases is only a conjecture. Keep testing: the first case that breaks the pattern is a counterexample, and it proves the conjecture false.',
+      (r) => {
+        const mode = r.int(0, 2);
+        if (mode === 0) {
+          const a = r.int(1, 6), k = r.pick([2, 2, 3]); const d1 = (k - 1) * a, d2 = (k * k - k) * a, sd = d2 - d1; const seq = [a, k * a, k * k * a]; let dd = d2; while (seq.length < 6) { dd += sd; seq.push(seq[seq.length - 1] + dd); }
+          const word = k === 2 ? 'double' : 'three times';
+          return { html: `A sequence begins ${B(seq.join(', ') + ', …')}<br>Kai looks at the first three terms and says: “Each term is ${word} the one before.”<br>Write down the first term that shows Kai is wrong.`, ...nAns(seq[3]), hint: `Check each term against ${k} × the previous one.`,
+            steps: [`${a} × ${k} = ${k * a} ✓, ${k * a} × ${k} = ${k * k * a} ✓`, `${k * k * a} × ${k} = ${k ** 3 * a}, but the next term is ${seq[3]} ✗`, `The differences are ${seq.slice(1).map((v, x) => v - seq[x]).join(', ')}, … — they go up by ${sd} each time; the terms are not multiplied by ${k}.`, `First counterexample: ${B(seq[3])}`] };
+        }
+        if (mode === 1) {
+          let a, d, i; do { a = r.pick([3, 5, 7, 11, 13]); d = r.pick([2, 4, 6, 10, 12]); i = 0; while (isPrime(a + d * i)) i++; } while (i < 2 || gcd(a, d) !== 1);
+          const shown = Array.from({ length: i + 2 }, (_, j) => a + d * j);
+          return { html: `A sequence starts ${B(shown.join(', ') + ', …')} and goes up by ${d} each time.<br>Lily says: “Every term in this sequence is a prime number.”<br>Write down the first term that disproves Lily’s conjecture.`, ...nAns(a + d * i), hint: 'Test each term: does it have a factor other than 1 and itself?',
+            steps: [`${shown.slice(0, i).join(', ')} ${i === 2 ? 'are both' : 'are all'} prime.`, `${a + d * i} = ${factorText(a + d * i)}, so it is not prime.`, `First counterexample: ${B(a + d * i)}`] };
+        }
+        const T = r.pick([
+          () => { const [x, y] = r.pick([[18, 30], [12, 20], [16, 24], [15, 25], [14, 21], [24, 36]]); const h = gcd(x, y); const claim = r.chance() ? h : h * r.pick([2, 3]) <= Math.min(x, y) && Math.min(x, y) % (h * 2) === 0 ? h * 2 : h / (h % 2 === 0 ? 2 : 1); const ok = claim === h;
+            return [`The HCF of ${x} and ${y} is ${claim}.`, ok, `Factors of ${x} and ${y} in common: ${[...Array(h + 1).keys()].filter((v) => v && h % v === 0).join(', ')}. The highest is ${h}.`]; },
+          () => { const [x, y] = r.pick([[9, 12], [6, 8], [10, 15], [4, 6], [8, 12], [6, 10]]); const l = lcm(x, y); const claim = r.chance() ? l : x * y; const ok = claim === l;
+            return [`The LCM of ${x} and ${y} is ${claim}.`, ok, `Multiples of ${x}: ${[1, 2, 3, 4].map((v) => v * x).join(', ')}…; multiples of ${y}: ${[1, 2, 3, 4].map((v) => v * y).join(', ')}… The first common multiple is ${l}.`]; },
+          () => { const n = r.pick([21, 27, 39, 51, 57, 87, 91, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]); const ok = isPrime(n);
+            return [`${n} is a prime number.`, ok, ok ? `${n} has exactly two factors, 1 and ${n}.` : `${n} = ${factorText(n)}, so it has more than two factors.`]; },
+          () => { const [x, y] = r.pick([[4, 6], [8, 12], [9, 15], [10, 25], [6, 9], [12, 18]]);
+            return [`HCF(${x}, ${y}) × LCM(${x}, ${y}) = ${x} × ${y}`, true, `HCF = ${gcd(x, y)}, LCM = ${lcm(x, y)}; ${gcd(x, y)} × ${lcm(x, y)} = ${x * y} = ${x} × ${y}.`]; },
+          () => { const n = r.int(3, 12); const ok = r.chance(); const v = ok ? 2 * n + 1 : 2 * n;
+            return [`${v} can be written in the form 2<i>n</i> + 1, where <i>n</i> is a whole number.`, ok, ok ? `${v} = 2 × ${n} + 1, so it is odd and fits the form.` : `${v} = 2 × ${n} is even; numbers of the form 2<i>n</i> + 1 are odd.`]; },
+        ])();
+        return { html: `True or false?<br>${B(T[0])}`, ...mcq(r, ['True', 'False'], T[1] ? 0 : 1), hint: 'Check it carefully with a calculation.',
+          steps: [T[2], `So the statement is ${B(T[1] ? 'true' : 'false')}.`] };
+      }],
+  ]);
+
+  addStyles('y9-nonlinear-graphs', [
+    ['Cubic, reciprocal & exponential values',
+      'Substitute into the equation just as for a quadratic. For a cubic, (−2)³ = −8. For y = k/x, x cannot be 0 (the y-axis is an asymptote). For y = aˣ, a⁰ = 1 and a negative power gives a fraction: 2⁻² = 1/4.',
+      (r) => {
+        const mode = r.int(0, 3);
+        if (mode === 0) {
+          const b = r.int(-4, 4), c = r.int(-6, 6); const xs = [-3, -2, -1, 0, 1, 2, 3]; const f = (x) => x ** 3 + b * x + c; const qx = r.pick(xs.filter((x) => x));
+          const tbl = htable(['<i>x</i>', ...xs.map((x) => ds(x))], [['<i>y</i>', ...xs.map((x) => (x === qx ? B('?') : ds(f(x))))]]);
+          return { html: `Here is a table of values for the cubic ${B(tx('y=' + polyT([[1, 'x^3'], [b, 'x'], [c, '']])))}.${tbl}Work out the missing value.`, ...nAns(f(qx)), answerLabel: '<i>y</i> =', hint: `Cube carefully: (${ds(qx)})³ = ${ds(qx ** 3)}.`,
+            steps: [`<i>y</i> = ${br(qx)}<sup>3</sup>${b ? ` ${b < 0 ? '−' : '+'} ${Math.abs(b) === 1 ? '' : Math.abs(b) + ' × '}${br(qx)}` : ''}${c ? pm(c) : ''}`, `= ${ds(qx ** 3)}${b ? pm(b * qx) : ''}${c ? pm(c) : ''}`, `<i>y</i> = ${B(ds(f(qx)))}`] };
+        }
+        if (mode === 1) {
+          const k = r.pick([1, 2, 3, 4, 6, 8, 10, 12, 24]) * r.sign(); const x = r.nz(-6, 6);
+          return { html: `Find the value of ${iv('y')} on the reciprocal graph ${B(`<i>y</i> = ${k < 0 ? '−' : ''}${frac(Math.abs(k), '<i>x</i>')}`)} when ${B(`<i>x</i> = ${ds(x)}`)}.`, ...fAns(k, x, { simplest: false }), answerLabel: '<i>y</i> =', format: 'Type a whole number, fraction or decimal, e.g. −3 or 2/5', hint: 'Divide k by the x-value.',
+            steps: [`<i>y</i> = ${frac(ds(k), br(x))}`, `<i>y</i> = ${B(fracN(...simp(k, x)))}`, 'x can never be 0, so the graph never touches the y-axis — it is an asymptote.'] };
+        }
+        if (mode === 2) {
+          const a = r.pick([2, 3, 4, 5, 10]); const x = r.int(-3, 4); if (a >= 5 && x > 3) return { html: `Find the value of ${iv('y')} on ${B(tx(`y=${a}^x`))} when ${B('<i>x</i> = 0')}.`, ...nAns(1), answerLabel: '<i>y</i> =', hint: 'Any number to the power 0 is 1.', steps: [`<i>y</i> = ${a}<sup>0</sup>`, `= ${B(1)} — every graph y = aˣ crosses the y-axis at (0, 1).`] };
+          const n = x >= 0 ? a ** x : 1, d = x >= 0 ? 1 : a ** -x;
+          return { html: `Find the value of ${iv('y')} on the exponential graph ${B(tx(`y=${a}^x`))} when ${B(`<i>x</i> = ${ds(x)}`)}.`, ...fAns(n, d), answerLabel: '<i>y</i> =', format: 'Type a whole number or fraction, e.g. 8 or 1/9', hint: x < 0 ? `A negative power means 1 divided by the positive power: ${a}<sup>${x}</sup> = 1 ÷ ${a}<sup>${-x}</sup>.` : 'Multiply the base by itself x times; a⁰ = 1.',
+            steps: [`<i>y</i> = ${a}<sup>${ds(x)}</sup>`, x < 0 ? `= ${frac(1, `${a}<sup>${-x}</sup>`)} = ${B(fracN(n, d))}` : `= ${B(ds(n))}`, 'The curve never reaches the x-axis: y is always positive.'] };
+        }
+        const q = r.pick([
+          () => { const k = r.int(1, 12); return [`For which value of ${iv('x')} can ${B(`<i>y</i> = ${frac(k, '<i>x</i>')}`)} not be worked out?`, 0, ['You cannot divide by 0.', `So <i>x</i> = ${B(0)} is impossible; the y-axis (x = 0) is an asymptote.`]]; },
+          () => { const a = r.pick([2, 3, 5, 10]), c = r.int(-5, 6); return [`Write down the ${iv('y')}-coordinate where ${B(tx(`y=${a}^x${c ? (c > 0 ? '+' : '-') + Math.abs(c) : ''}`))} crosses the ${iv('y')}-axis.`, 1 + c, [`At the y-axis x = 0, and ${a}<sup>0</sup> = 1.`, `<i>y</i> = 1${c ? pm(c) : ''} = ${B(ds(1 + c))}`]]; },
+          () => { const b = r.int(-6, 6), c = r.int(-9, 9); return [`Write down the ${iv('y')}-coordinate where the cubic ${B(tx('y=' + polyT([[1, 'x^3'], [b, 'x^2'], [c, '']])))} crosses the ${iv('y')}-axis.`, c, ['At the y-axis x = 0, so every term with x is 0.', `<i>y</i> = ${B(ds(c))}`]]; },
+        ])();
+        return { html: q[0], ...nAns(q[1]), hint: 'Think about what happens when x = 0.', steps: q[2] };
       }],
   ]);
 };

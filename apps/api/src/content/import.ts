@@ -15,6 +15,10 @@ export async function bumpContentVersion(db: Db) {
   await db.insert(s.contentVersion).values({ id: 1, version: 1 }).onConflictDoUpdate({ target: s.contentVersion.id, set: { version: sql`${s.contentVersion.version} + 1`, updatedAt: sql`now()` } });
 }
 
+// key-order-insensitive JSON (jsonb does not keep key order)
+const canon = (v: unknown): string => Array.isArray(v) ? `[${v.map(canon).join(',')}]` : v && typeof v === 'object'
+  ? `{${Object.keys(v as object).sort().map((k) => `${JSON.stringify(k)}:${canon((v as Record<string, unknown>)[k])}`).join(',')}}` : JSON.stringify(v ?? null);
+
 const countAll = async (db: Db) => {
   const n = async (t: string) => Number(((await db.execute(sql.raw(`select count(*)::int as n from ${t}`))) as unknown as { rows: { n: number }[] }).rows[0].n);
   return [await n('topics'), await n('styles'), await n('items'), await n('learn_pages')].join(',');
@@ -26,14 +30,25 @@ export async function syncContent(db: Db) {
   const before = await countAll(db);
   await importContent(db, { bump: false });
   const R = require(path.join(ROOT, 'packages/content-seed/registry.cjs'));
+  let pagesUpdated = 0;
   await db.transaction(async (tx) => {
     for (const [i, t] of (R.TOPICS as { id: string; styles: string[] }[]).entries()) {
       await tx.update(s.topics).set({ sortOrder: i }).where(sql`${s.topics.id} = ${t.id} and ${s.topics.sortOrder} <> ${i}`);
     }
+    // teaching pages nobody has edited follow the seed (so improvements to existing pages reach live sites)
+    const rows = await tx.select({ topicId: s.learnPages.topicId, content: s.learnPages.content }).from(s.learnPages).where(sql`${s.learnPages.edited} = false`);
+    for (const r of rows) {
+      const seed = R.LEARN[r.topicId];
+      if (seed && canon(JSON.parse(JSON.stringify(seed))) !== canon(r.content)) {
+        await tx.update(s.learnPages).set({ content: seed, updatedAt: new Date().toISOString() }).where(sql`${s.learnPages.topicId} = ${r.topicId}`);
+        pagesUpdated++;
+      }
+    }
   });
   const after = await countAll(db);
-  if (after !== before) await bumpContentVersion(db);
-  return { changed: after !== before, before, after };
+  const changed = after !== before || pagesUpdated > 0;
+  if (changed) await bumpContentVersion(db);
+  return { changed, before, after, pagesUpdated };
 }
 
 export async function importContent(db: Db, { overwrite = false, bump = true } = {}) {

@@ -89,7 +89,7 @@ module.exports = (H) => {
       ['Rational & irrational numbers',
         'A rational number can be written as one integer divided by another, so integers, fractions, terminating decimals and recurring decimals are all rational. An irrational number, such as π or √2, is a decimal that never ends and never repeats.',
         (r) => {
-          const mode = r.int(0, 2);
+          const mode = r.int(0, 3);
           if (mode === 0) {
             const nI = r.int(2, 3), its = r.shuffle(itemSet(r, nI, 6 - nI)); const pickIrr = r.chance(0.6);
             const correct = its.map((it, i) => (it.irr === pickIrr ? i : -1)).filter((i) => i >= 0);
@@ -106,6 +106,12 @@ module.exports = (H) => {
             return { html: `Three of these numbers are irrational. Which one is ${B('rational')}?`, ...mcq(r, opts.map((it) => it.s), 0), hint: 'Which one can be written exactly as a fraction?',
               steps: opts.map((it) => `${it.s}: ${it.why}`).concat([`The rational number is ${B(opts[0].s)}.`]) };
           }
+          if (mode === 3) {
+            const k = r.int(2, 12); const neg = r.chance(0.6) ? `√(−${k * k})` : `√(−${r.pick([2, 3, 5, 6, 7, 10, 11])})`;
+            const others = itemSet(r, 1, 2);
+            return { html: `Which one of these is ${B('not a real number')}?`, ...mcq(r, [neg, ...others.map((it) => it.s)], 0), hint: 'Think about what you would square to get a negative answer.',
+              steps: [`${neg}: any real number squared is positive or zero (e.g. ${k} × ${k} and (−${k}) × (−${k}) are both positive), so no real number squares to give a negative. ${neg} is ${B('not real')}.`, ...others.map((it) => `${it.s}: real — ${it.why}`)] };
+          }
           const it = r.chance(0.4) ? irrItem(r) : ratItem(r);
           const opts = ['an integer', 'rational but not an integer', 'irrational'];
           const k = it.kind === 'int' ? 0 : it.kind === 'frac' ? 1 : 2;
@@ -115,7 +121,14 @@ module.exports = (H) => {
       ['Calculating & substituting with directed numbers',
         'Same signs multiply or divide to give a positive answer; different signs give a negative answer. Subtracting a negative is the same as adding. When you substitute a negative value, put it in brackets so the signs are handled correctly.',
         (r) => {
-          const t = r.int(0, 4);
+          const t = r.int(0, 5);
+          if (t === 5) {
+            const a = r.nz(-12, 12), b = r.nz(-12, 12), c = r.nz(-12, 12); const o1 = r.chance() ? '+' : '−', o2 = r.chance() ? '+' : '−';
+            const eb = o1 === '+' ? b : -b, ec = o2 === '+' ? c : -c; const v = a + eb + ec;
+            const say0 = (o, x) => (o === '+' ? (x < 0 ? `adding ${br(x)} is the same as subtracting ${-x}` : `add ${x}`) : (x < 0 ? `subtracting ${br(x)} is the same as adding ${-x}` : `subtract ${x}`)); const say = (o, x) => { const t2 = say0(o, x); return t2[0].toUpperCase() + t2.slice(1); };
+            return { html: `Work out ${B(`${ds(a)} ${o1} ${br(b)} ${o2} ${br(c)}`)}`, ...nAns(v), hint: 'Two signs next to each other: same signs make +, different signs make −.',
+              steps: [`${say(o1, b)}: ${ds(a)} ${eb < 0 ? '−' : '+'} ${Math.abs(b)} = ${ds(a + eb)}`, `${say(o2, c)}: ${ds(a + eb)} ${ec < 0 ? '−' : '+'} ${Math.abs(c)} = ${B(ds(v))}`] };
+          }
           if (t <= 1) { // substitution
             let a, b; do { a = r.nz(-9, 9); b = r.nz(-9, 9); } while (a > 0 && b > 0);
             const [eh, f, w] = r.pick(SUBS); const v = f(a, b);
@@ -141,7 +154,17 @@ module.exports = (H) => {
         'Write each number as a product of prime factors. The HCF multiplies the primes the numbers share (lower powers); the LCM multiplies every prime that appears (higher powers). HCF problems split things into equal groups; LCM problems ask when things happen together again.',
         (r) => {
           let g, m1, m2; do { g = r.int(2, 18); m1 = r.int(2, 9); m2 = r.int(2, 9); } while (m1 === m2 || gcd(m1, m2) !== 1 || g * Math.max(m1, m2) > 180);
-          const a = g * m1, b = g * m2; const t = r.int(0, 3);
+          const a = g * m1, b = g * m2; const t = r.int(0, 4);
+          if (t === 4) {
+            let x, y; do { x = r.int(4, 40); y = r.int(4, 40); } while (x >= y || gcd(x, y) === 1 || y % x === 0 || lcm(x, y) > 120);
+            const want = r.chance() ? 'hcf' : 'lcm';
+            if (want === 'hcf') { const fx2 = (n) => Array.from({ length: n }, (_, i) => i + 1).filter((d) => n % d === 0); const h = gcd(x, y);
+              return { html: `List the factors of ${B(x)} and of ${B(y)}. Use your lists to find the ${B('highest common factor')} of ${x} and ${y}.`, ...nAns(h), hint: 'Write the factors in pairs so you do not miss any, then find the biggest number in both lists.',
+                steps: [`Factors of ${x}: ${fx2(x).join(', ')}`, `Factors of ${y}: ${fx2(y).join(', ')}`, `Common factors: ${fx2(x).filter((d) => y % d === 0).join(', ')}`, `The highest is ${B(h)}.`] }; }
+            const L = lcm(x, y); const mx = (n) => Array.from({ length: L / n }, (_, i) => n * (i + 1));
+            return { html: `List the multiples of ${B(x)} and of ${B(y)}. Use your lists to find the ${B('lowest common multiple')} of ${x} and ${y}.`, ...nAns(L), hint: 'Write out each times table until you find the first number in both lists.',
+              steps: [`Multiples of ${x}: ${mx(x).join(', ')}, …`, `Multiples of ${y}: ${mx(y).join(', ')}, …`, `The first number in both lists is ${B(L)}.`] };
+          }
           if (t === 0 || t === 1) {
             const want = t === 0 ? 'hcf' : 'lcm';
             return { html: `Find the ${B(want === 'hcf' ? 'highest common factor (HCF)' : 'lowest common multiple (LCM)')} of ${B(a)} and ${B(b)}.`, ...nAns(want === 'hcf' ? g : lcm(a, b)),
@@ -234,6 +257,15 @@ module.exports = (H) => {
       ['Bills & bank statements',
         'A credit is money paid into an account and a debit is money taken out. Work down a statement row by row: add credits to the balance and subtract debits. A balance can go below zero (overdrawn). On bills, make sure every price is in the same unit (pounds or pence) before adding.',
         (r) => {
+          if (r.chance(0.2)) {
+            const item = r.pick(['television', 'sofa', 'laptop', 'fridge-freezer', 'electric bike', 'bed']); const cash = r.int(30, 180) * 1000; // pence
+            const dep = Math.round(cash * r.pick([0.1, 0.15, 0.2, 0.25]) / 500) * 500; const months = r.pick([6, 10, 12, 18, 24]);
+            const inst = Math.ceil((cash - dep) * r.pick([1.05, 1.1, 1.15, 1.2]) / months / 50) * 50; const credit = dep + months * inst; const ask = r.chance();
+            const steps = [`Monthly payments: ${months} × ${P(inst)} = ${P(months * inst)}`, `Total on the payment plan: ${P(dep)} + ${P(months * inst)} = ${ask ? B(P(credit)) : P(credit)}`];
+            if (!ask) steps.push(`Extra cost: ${P(credit)} − ${P(cash)} = ${B(P(credit - cash))}`);
+            return { html: `A ${item} costs ${B(P(cash))} if you pay in full. On a payment plan you pay a ${B('deposit')} of ${B(P(dep))} and then ${B(`${months} monthly payments of ${P(inst)}`)}. ${ask ? 'What is the total cost on the payment plan?' : 'How much more does it cost to use the payment plan?'}`,
+              ...nAns((ask ? credit : credit - cash) / 100, { money: true }), format: MONEY_FMT, hint: 'Add the deposit to all the monthly payments.', steps };
+          }
           if (r.chance(0.55)) {
             const start = r.int(20, 900) * 100 + r.pick([0, 0, 50, 25, 99, 10]);
             const CR = [['Salary', 90000, 240000], ['Birthday money', 1000, 6000], ['Refund', 500, 4000], ['Transfer in', 2000, 30000]];
@@ -429,7 +461,14 @@ module.exports = (H) => {
       ['Ratio problems from one part or a difference',
         'When you know one part, divide it by its number of shares to find one share. When you know the difference between two parts, divide by the difference in shares. Then scale one share up to find any other part or the total.',
         (r) => {
-          let p, q; do { p = r.int(1, 9); q = r.int(1, 9); } while (p === q || gcd(p, q) !== 1); const one = r.int(2, 20); const t = r.int(0, 3);
+          let p, q; do { p = r.int(1, 9); q = r.int(1, 9); } while (p === q || gcd(p, q) !== 1); const one = r.int(2, 20); const t = r.int(0, 4);
+          if (t === 4) {
+            const n = r.int(2, 9); const k = r.int(2, 15); const [a, b] = r.pick([['blue pens', 'red pens'], ['white tiles', 'black tiles'], ['apple trees', 'pear trees'], ['adult tickets', 'child tickets'], ['plain biscuits', 'chocolate biscuits']]);
+            const nFirst = r.chance(); const ratio = nFirst ? `${n} : 1` : `1 : ${n}`; const known = nFirst ? b : a, other = nFirst ? a : b; const askTotal = r.chance(0.35);
+            return { html: `The ratio of ${a} to ${b} is ${B(ratio)}. There are ${B(`${k} ${known}`)}. ${askTotal ? `How many ${a.split(' ').pop()} are there altogether?` : `How many ${other} are there?`}`,
+              ...nAns(askTotal ? k * (n + 1) : k * n), hint: `The "1" part of the ratio is the ${known}, so one share is ${k}.`,
+              steps: [`${known[0].toUpperCase() + known.slice(1)} are the 1 part: 1 share = ${k}`, `${other[0].toUpperCase() + other.slice(1)} = ${n} shares = ${n} × ${k} = ${askTotal ? k * n : B(k * n)}`].concat(askTotal ? [`Altogether = ${k} + ${k * n} = ${B(k * (n + 1))}`] : []) };
+          }
           if (t === 0) {
             const [a, b] = r.pick([['blue pens', 'red pens'], ['boys', 'girls'], ['adults', 'children'], ['cats', 'dogs'], ['milk chocolates', 'dark chocolates']]);
             return { html: `In a ${a === 'blue pens' || a === 'milk chocolates' ? 'box' : 'group'}, the ratio of ${a} to ${b} is ${B(`${p} : ${q}`)}. There are ${B(`${q * one} ${b}`)}. How many ${a} are there?`, ...nAns(p * one), hint: `${q} shares = ${q * one}.`,
@@ -489,6 +528,14 @@ module.exports = (H) => {
       ['Best buys',
         'To find the best buy, compare equal amounts: work out the cost of one unit (per item, per 100 g, per litre) for each option — or how much you get per £1. The lowest cost per unit, or the most per pound, is the best value.',
         (r) => {
+          if (r.chance(0.3)) { // compare "how much per £1"
+            const it = r.pick([['cans of pop', 'cans'], ['bread rolls', 'rolls'], ['tennis balls', 'balls'], ['yoghurts', 'yoghurts']]);
+            let nA, nB, pA, pB, perA, perB; do { nA = r.int(3, 12); nB = r.int(3, 12); pA = Math.round(nA * r.int(15, 70) / 10) * 10; pB = Math.round(nB * r.int(15, 70) / 10) * 10; perA = nA / (pA / 100); perB = nB / (pB / 100); } while (nA === nB || Math.abs(perA - perB) < 0.15);
+            const best = perA > perB ? 'A' : 'B';
+            return { html: `Shop A sells ${B(`${nA} ${it[0]}`)} for ${B(P(pA))}. Shop B sells ${B(`${nB} ${it[0]}`)} for ${B(P(pB))}. By working out how many ${it[1]} you get ${B('for each £1')}, decide which shop is better value.`,
+              answer: best, check: { type: 'text', accept: [best, 'Shop ' + best] }, answerHtml: B('Shop ' + best), format: 'Type A or B', hint: 'Divide the number of items by the price in pounds.',
+              steps: [`Shop A: ${nA} ÷ ${ps(pA / 100)} = ${ps(perA, 2)} ${it[1]} per £1`, `Shop B: ${nB} ÷ ${ps(pB / 100)} = ${ps(perB, 2)} ${it[1]} per £1`, `More for each pound is better value: ${B('Shop ' + best)}`] };
+          }
           const prods = [['rice', 'g', [500, 750, 1000, 2000, 2500, 5000], 100, 'per 100 g'], ['juice', 'ml', [250, 500, 750, 1000, 1500, 2000], 100, 'per 100 ml'], ['washing powder', 'g', [800, 1000, 1600, 2000, 2400, 3000], 100, 'per 100 g'], ['cans of pop', 'cans', [4, 6, 8, 10, 12, 24], 1, 'per can']];
           const [nm, u, sizes, per, perT] = r.pick(prods); const n = r.chance(0.5) ? 3 : 2; const labels = ['A', 'B', 'C'];
           let opts; do {
@@ -538,6 +585,107 @@ module.exports = (H) => {
         return { html: txt(p, fmtV(N)), ...(isMoney ? nAns(O, { money: true }) : nAns(O)), format: isMoney ? MONEY_FMT : 'Type a number', hint: `The new amount is ${m}% of the original. Divide by ${ps(m / 100)}.`,
           steps: [`${up ? 'Increase' : 'Decrease'} of ${p}%: new amount = 100% ${up ? '+' : '−'} ${p}% = ${m}% of the original`, `Multiplier = ${ps(m / 100)}, so original = ${fmtV(N)} ÷ ${ps(m / 100)}`, `= ${B(fmtV(O))}`,
             `Or by scaling: ${m}% = ${fmtV(N)}, so 1% = ${fmtV(N)} ÷ ${m} = ${ps(N / m, 6)}, and 100% = ${B(fmtV(O))}`, `Check: ${fmtV(O)} × ${ps(m / 100)} = ${fmtV(N)} ✓`] };
+      }],
+  ]);
+
+  // =====================================================================
+  // School-sheet gap fillers
+  // =====================================================================
+  const sfParts = (v) => { const [m, e] = v.toExponential(10).split('e'); return [ps(+m), +e]; };
+  const sfH = (m, e) => `${m} × 10<sup>${ds(e)}</sup>`;
+  const sfAnswer = (v) => { const [m, e] = sfParts(v); return { answer: `${m}×10^${e}`, check: { type: 'number', value: v, sf: true, tol: Math.abs(v) * 1e-9 }, answerHtml: B(sfH(m, e)), format: 'Type it like 3.2×10^5 (or 3.2x10^5, or 3.2e5)' }; };
+
+  addStyles('y9-standard-form', [
+    ['Adding, subtracting & tidying standard form',
+      'To add or subtract, first make the powers of 10 the same (or write both as ordinary numbers), then combine the front numbers. If the front number ends up outside 1 to 10, adjust it: 14 × 10⁵ = 1.4 × 10⁶ and 0.5 × 10³ = 5 × 10².',
+      (r) => {
+        const t = r.int(0, 3);
+        if (t === 0) { // same power, answer needs tidying
+          let a, b; do { a = r.int(2, 9); b = r.int(2, 9); } while (a + b < 10 || a === b); const n = r.int(-6, 9); const v = Number(`${a + b}e${n}`); const [m, e] = sfParts(v);
+          return { html: `Work out ${B(`(${sfH(a, n)}) + (${sfH(b, n)})`)}. Give your answer in standard form.`, ...sfAnswer(v), hint: 'The powers are the same, so add the front numbers — then check the front number is between 1 and 10.',
+            steps: [`Same power of 10, so add the front numbers: ${a} + ${b} = ${a + b}`, `${sfH(a + b, n)} — but ${a + b} is not between 1 and 10`, `${a + b} = 1.${(a + b) % 10 ? (a + b) % 10 : ''} × 10, so the answer is ${B(sfH(m, e))}`.replace('1. ×', '1 ×')] };
+        }
+        if (t === 1) { // different powers, add or subtract
+          const A = r.int(11, 99), Bm = r.int(11, 99); const n = r.int(2, 7); const d = r.pick([1, 2]); const add = r.chance();
+          const x = Number(`${A / 10}e${n}`), y = Number(`${Bm / 10}e${n - d}`); const v = add ? x + y : x - y; const [m, e] = sfParts(v);
+          return { html: `Work out ${B(`(${sfH(A / 10, n)}) ${add ? '+' : '−'} (${sfH(Bm / 10, n - d)})`)}. Give your answer in standard form.`, ...sfAnswer(v), hint: 'Write both as ordinary numbers first (or make the powers the same).',
+            steps: [`${sfH(A / 10, n)} = ${ds(x)}`, `${sfH(Bm / 10, n - d)} = ${ds(y)}`, `${ds(x)} ${add ? '+' : '−'} ${ds(y)} = ${ds(v)}`, `In standard form: ${B(sfH(m, e))}`] };
+        }
+        if (t === 2) { // tidy a non-standard number
+          const big = r.chance(); const fr = big ? r.pick([r.int(11, 99), r.int(101, 999)]) : r.pick([r.int(11, 99) / 100, r.int(1, 9) / 10]); const n = r.int(-5, 8);
+          const v = Number(`${fr}e${n}`); const [m, e] = sfParts(v); const sh = e - n;
+          return { html: `${B(sfH(ps(fr), n))} is not in standard form. Write it in standard form.`, ...sfAnswer(v), hint: 'Make the front number between 1 and 10, then change the power to balance it.',
+            steps: [`${ps(fr)} is not between 1 and 10: ${ps(fr)} = ${m} × 10<sup>${ds(sh)}</sup>`, `So ${sfH(ps(fr), n)} = ${m} × 10<sup>${ds(sh)}</sup> × 10<sup>${ds(n)}</sup>`, `Add the powers: ${B(sfH(m, e))}`] };
+        }
+        // division where the divisor is not in standard form, e.g. (1.5 × 10^5) ÷ (0.3 × 10^3)
+        let q, b; do { q = r.int(2, 9); b = r.int(2, 9); } while (q * b < 10 || (q * b) % 10 === 0);
+        const bb = b / 10, top = q * b / 10; const p = r.int(4, 9), n2 = r.int(1, 3); const v = Number(`${q}e${p - n2}`);
+        return { html: `Work out ${B(`(${sfH(ps(top), p)}) ÷ (${sfH(ps(bb), n2)})`)}. Give your answer in standard form.`, ...sfAnswer(v), hint: 'Divide the front numbers and subtract the powers.',
+          steps: [`Divide the front numbers: ${ps(top)} ÷ ${ps(bb)} = ${ps(top * 10)} ÷ ${b} = ${q}`, `Subtract the powers: 10<sup>${p}</sup> ÷ 10<sup>${n2}</sup> = 10<sup>${p - n2}</sup>`, `${q} is between 1 and 10, so the answer is ${B(sfH(q, p - n2))}`] };
+      }],
+  ]);
+
+  const FDP = [[1, 2], [1, 4], [3, 4], [1, 5], [2, 5], [3, 5], [4, 5], [1, 8], [3, 8], [5, 8], [7, 8], [1, 10], [3, 10], [7, 10], [9, 10], [1, 20], [3, 20], [7, 20], [11, 20], [1, 25], [6, 25], [12, 25], [1, 50], [17, 50], [21, 25]];
+  const REC = [[1, 3, '0.333…'], [2, 3, '0.666…'], [1, 9, '0.111…'], [4, 9, '0.444…'], [1, 6, '0.1666…'], [5, 6, '0.8333…'], [1, 11, '0.0909…'], [7, 9, '0.777…']];
+  addStyles('y9-percentage-change', [
+    ['Fractions, decimals & percentages',
+      'Per cent means "out of 100". Decimal → percentage: × 100. Fraction → decimal: divide the numerator by the denominator (or make the denominator 100). Some fractions, such as ⅓, give recurring decimals.',
+      (r) => {
+        const t = r.int(0, 5); const [n, d] = r.pick(FDP); const dec = n / d, pc = dec * 100;
+        if (t === 0) return { html: `Write ${B(frac(n, d))} as a percentage.`, ...nAns(pc, { unit: '%' }), unit: '%', hint: 'Make the denominator 100, or divide and multiply by 100.',
+          steps: 100 % d === 0 ? [`${frac(n, d)} = ${frac(n * 100 / d, 100)} (multiply top and bottom by ${100 / d})`, `${n * 100 / d} out of 100 = ${B(ps(pc) + '%')}`] : [`${n} ÷ ${d} = ${ps(dec)}`, `${ps(dec)} × 100 = ${B(ps(pc) + '%')}`] };
+        if (t === 1) return { html: `Write ${B(ps(pc) + '%')} as a fraction in its simplest form.`, ...fAns(n, d), format: 'Type a fraction, e.g. 3/20', hint: 'Write it over 100, then simplify.',
+          steps: [`${ps(pc)}% = ${frac(ps(pc), 100)}${pc % 1 ? ` = ${frac(ps(pc * 10), 1000)}` : ''}`, `Simplify: ${B(frac(n, d))}`] };
+        if (t === 2) { const dv = r.pick([0.7, 0.07, 0.35, 0.125, 1.2, 0.04, 0.65, 0.9, 0.015, 2.5, 0.48]); const up = r.chance();
+          return up ? { html: `Write ${B(ps(dv))} as a percentage.`, ...nAns(dv * 100, { unit: '%' }), unit: '%', hint: 'Multiply by 100.', steps: [`${ps(dv)} × 100`, `= ${B(ps(dv * 100) + '%')}`] }
+            : { html: `Write ${B(ps(dv * 100) + '%')} as a decimal.`, ...nAns(dv), hint: 'Divide by 100.', steps: [`${ps(dv * 100)} ÷ 100`, `= ${B(ps(dv))}`] }; }
+        if (t === 3) { const [a, b, s] = r.pick(REC); const wrong = [ps(Math.round(a / b * 10) / 10), ps(Math.round(a / b * 100) / 100), `0.${a}${b}`].filter((x) => x !== s);
+          const opts = [...new Set([s, ...wrong])];
+          return { html: `Which decimal is exactly equal to ${B(frac(a, b))}?`, ...mcq(r, opts, 0), hint: 'Use short division — does it stop or repeat?',
+            steps: [`${a} ÷ ${b} = ${s} — the digits repeat for ever (a recurring decimal).`, `Values such as ${wrong[0]} are rounded, so they are close but not exact. The answer is ${B(s)}.`] }; }
+        if (t === 4) { // compare a fraction, a decimal and a percentage
+          let fs3; do { fs3 = r.sample(FDP, 3); } while (new Set(fs3.map((f) => f[0] / f[1])).size < 3);
+          const vals = fs3.map((f) => f[0] / f[1]); const labels = [`${fs3[0][0]}/${fs3[0][1]}`, ps(vals[1]), ps(vals[2] * 100) + '%']; const shown = [frac(fs3[0][0], fs3[0][1]), labels[1], labels[2]];
+          const big = r.chance(); const k = vals.reduce((bi, v, i) => ((big ? v > vals[bi] : v < vals[bi]) ? i : bi), 0);
+          return { html: `Which is the ${B(big ? 'largest' : 'smallest')}: ${shown.map((x) => B(x)).join(', ')}?`, ...mcq(r, labels, k), hint: 'Change them all into the same form, e.g. percentages.',
+            steps: [...labels.map((l, i) => `${shown[i]} = ${ps(vals[i] * 100)}%`), `The ${big ? 'largest' : 'smallest'} is ${B(shown[k])}.`] };
+        }
+        // amount as a percentage
+        const tot = r.pick([20, 25, 40, 50, 80, 200, 250, 400]); let part; do { part = r.int(1, tot - 1); } while ((part * 100) % tot);
+        const ctx = r.pick([['scored', 'marks', 'in a test out of'], ['answered', 'questions correctly', 'in a quiz of'], ['sold', 'tickets', 'from a batch of']]);
+        return { html: `${r.pick(nameSet)} ${ctx[0]} ${B(part)} ${ctx[1]} ${ctx[2]} ${B(tot)}. What percentage is this?`, ...nAns(part * 100 / tot, { unit: '%' }), unit: '%', hint: 'Write it as a fraction, then change to a percentage.',
+          steps: [`As a fraction: ${frac(part, tot)}`, `${frac(part, tot)} = ${frac(part * 100 / tot, 100)}`, `= ${B(ps(part * 100 / tot) + '%')}`] };
+      }],
+    ['Percentage profit & loss',
+      'Percentage profit (or loss) = change ÷ ORIGINAL price × 100. The original is the price paid (the cost), not the selling price.',
+      (r) => {
+        const p = r.pick([5, 10, 12.5, 15, 20, 25, 30, 35, 37.5, 40, 45, 60, 2.5, 17.5, 7.5]); const up = r.chance();
+        const ctx = r.pick([['a phone', 1, [8, 60], 5], ['a house', 1000, [90, 400], 1], ['a car', 100, [20, 300], 1], ['a painting', 10, [5, 200], 1], ['a bike', 1, [20, 120], 5], ['a games console', 1, [10, 60], 10]]);
+        let C; do { C = r.int(ctx[2][0], ctx[2][1]) * ctx[1] * ctx[3]; } while (!Number.isInteger(C * p) || (ctx[1] >= 10 && !Number.isInteger(C * p / 100)));
+        const S = C * (up ? 100 + p : 100 - p) / 100; const who = r.pick(nameSet);
+        return { html: `${who} bought ${ctx[0]} for ${B(money(C))} and later sold it for ${B(money(S))}. Work out the percentage ${up ? 'profit' : 'loss'}.`, ...nAns(p, { unit: '%' }), unit: '%', hint: 'Divide the change by the price ' + who + ' paid.',
+          steps: [`${up ? 'Profit' : 'Loss'} = ${money(Math.max(C, S))} − ${money(Math.min(C, S))} = ${money(Math.abs(S - C))}`, `Percentage ${up ? 'profit' : 'loss'} = ${frac(ps(Math.abs(S - C)), ps(C))} × 100`, `= ${B(ps(p) + '%')}`] };
+      }],
+  ]);
+
+  addStyles('y9-maths-money', [
+    ['Unit pricing',
+      'The unit price is the cost of one item (or one gram, one litre…). Divide the total cost by the number of units. Because cost and number of items are in direct proportion, you can also halve, double or scale to compare deals.',
+      (r) => {
+        const t = r.int(0, 3); const it = r.pick([['oranges', 'orange'], ['cupcakes', 'cupcake'], ['pens', 'pen'], ['bread rolls', 'bread roll'], ['cans of pop', 'can'], ['bananas', 'banana']]);
+        if (t === 0) { const n = r.int(2, 12), u = r.int(8, 95); return { html: `A pack of ${B(`${n} ${it[0]}`)} costs ${B(P(n * u))}. What is the cost of one ${it[1]}, in pence?`, ...nAns(u, { unit: 'p' }), unit: 'p', format: 'Type the number of pence, e.g. 25', hint: 'Divide the cost by the number of items.',
+          steps: [`${P(n * u)} = ${n * u}p`, `${n * u} ÷ ${n} = ${B(u + 'p')} each`] }; }
+        if (t === 1) { let nA, nB, uA, uB; do { nA = r.int(2, 8); nB = r.int(2, 8); uA = r.int(10, 90); uB = r.int(10, 90); } while (nA === nB || uA === uB);
+          const save = r.int(2, 6) * 2; const best = uA < uB ? 'A' : 'B';
+          return { html: `Shop A: ${B(`${nA} ${it[0]}`)} for ${B(P(nA * uA))}. Shop B: ${B(`${nB} ${it[0]}`)} for ${B(P(nB * uB))}. How much would you save by buying ${B(save + ' ' + it[0])} at the cheaper shop?`, ...nAns(save * Math.abs(uA - uB) / 100, { money: true }), format: MONEY_FMT, hint: 'Find the cost of one item at each shop first.',
+            steps: [`Shop A: ${nA * uA}p ÷ ${nA} = ${uA}p each`, `Shop B: ${nB * uB}p ÷ ${nB} = ${uB}p each`, `Shop ${best} is cheaper by ${Math.abs(uA - uB)}p per ${it[1]}`, `Saving on ${save}: ${save} × ${Math.abs(uA - uB)}p = ${B(P(save * Math.abs(uA - uB)))}`] }; }
+        if (t === 3) { let n, c; do { n = r.int(3, 9); c = r.int(10, 60) * 10; } while ((n * 100) % c === 0 && false);
+          const per = n / (c / 100);
+          return { html: `${B(`${n} ${it[0]}`)} cost ${B(P(c))}. How many ${it[0]} do you get ${B('for each £1')}? Give your answer to 2 decimal places.`, ...nAns(per, { dp: 2 }), format: 'Type a number, e.g. 3.33', hint: 'Divide the number of items by the cost in pounds.',
+            steps: [`Cost in pounds: ${ps(c / 100)}`, `${n} ÷ ${ps(c / 100)} = ${ps(per, 5)}…`, `= ${B(fx(per, 2))} ${it[0]} per £1`] }; }
+        let n, u, m; do { n = r.int(2, 10); u = r.int(10, 80); m = r.int(3, 20); } while (m === n); const tot = n * u;
+        return { html: `${B(`${n} ${it[0]}`)} cost ${B(P(tot))}. Using the unit price, work out the cost of ${B(`${m} ${it[0]}`)}.`, ...nAns(m * u / 100, { money: true }), format: MONEY_FMT, hint: 'Find the cost of one first.',
+          steps: [`Unit price: ${tot}p ÷ ${n} = ${u}p`, `${m} × ${u}p = ${m * u}p = ${B(P(m * u))}`] };
       }],
   ]);
 };

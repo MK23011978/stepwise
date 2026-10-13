@@ -33,6 +33,13 @@ describe('stage 3 — content in the database', () => {
     expect(r.changed).toBe(true);
     expect((await db.select().from(s.learnPages).where(eq(s.learnPages.topicId, 'y9-pythagoras'))).length).toBe(1);
     expect((await db.select().from(s.topics).where(eq(s.topics.id, 'y9-polygons')))[0].name).toBe('Edited by admin');
+    // unedited pages follow the seed; admin-edited ones are kept
+    await db.update(s.learnPages).set({ content: { overview: 'old' } }).where(eq(s.learnPages.topicId, 'y9-indices'));
+    await db.update(s.learnPages).set({ content: { overview: 'mine' }, edited: true }).where(eq(s.learnPages.topicId, 'y9-density'));
+    expect((await syncContent(db)).pagesUpdated).toBe(1);
+    expect(((await db.select().from(s.learnPages).where(eq(s.learnPages.topicId, 'y9-indices')))[0].content as { overview: string }).overview).not.toBe('old');
+    expect(((await db.select().from(s.learnPages).where(eq(s.learnPages.topicId, 'y9-density')))[0].content as { overview: string }).overview).toBe('mine');
+    expect((await syncContent(db)).changed).toBe(false);
     await db.update(s.topics).set({ name: t.name }).where(eq(s.topics.id, 'y9-polygons'));
   });
 

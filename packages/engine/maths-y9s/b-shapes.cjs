@@ -1,7 +1,7 @@
 'use strict';
 // Year 9 school unit: 3D shapes, constructions & congruence, angles in parallel lines & deduction.
 module.exports = (H) => {
-  const { topic, SPEC, nAns, eAns, mcq, B, ds, fx, deg, svgWrap, sT, sL, sP, sC, sPoly, dot, angArc, rightMark, cuboidSvg } = H;
+  const { topic, addStyles, SPEC, nAns, eAns, mcq, B, ds, fx, svgWrap, sT, sL, sP, sC, sE, sPoly, dot, angArc, rightMark, cuboidSvg, shapeSvg, circleSvg } = H;
   const ACC = '#3b6cf6';
   const DEG = Math.PI / 180;
   const sinD = (d) => Math.sin(d * DEG), cosD = (d) => Math.cos(d * DEG);
@@ -760,6 +760,347 @@ module.exports = (H) => {
         const [claim, good, bads, why] = r.pick(CE); const who = r.pick(['Sam', 'Aisha', 'Tom', 'Mei', 'Jordan']);
         return { html: `${who} says: “${claim}” Which example is a counterexample that proves ${who} wrong?`, ...mcq(r, [good, ...bads], 0), hint: 'A counterexample fits the starting condition but breaks the conclusion.',
           steps: ['A counterexample must meet the condition in the statement but not the conclusion.', why, `Counterexample: ${B(good)}`] };
+      }],
+  ]);
+
+  // ======================================================================
+  // SCHOOL-SHEET AUDIT ADDITIONS (appended styles — keep after the topic() calls above)
+  // ======================================================================
+  const LET = 'ABCDEFGH';
+  const pickN = (r, arr, n, not) => r.sample(arr.filter((x) => x !== not), n);
+  // ---- simple pictures of named shapes (screen coordinates) ----
+  function oblSvg(F, dx, dy) {
+    const Bk = F.map(([x, y]) => [x + dx, y + dy]);
+    return sPoly(Bk, { dash: true, w: 1 }) + F.map((p, i) => sL(p[0], p[1], Bk[i][0], Bk[i][1])).join('') + sPoly(F, { fill: ACC, fop: 0.08 });
+  }
+  const regPts = (n, cx, cy, R, rot = 90) => Array.from({ length: n }, (_, i) => [cx + R * cosD(rot + (360 / n) * i), cy - R * sinD(rot + (360 / n) * i)]);
+  const SHAPE_PIC = {
+    circle: () => sC(180, 105, 70, { fill: ACC }) .replace('fill="#3b6cf6"', 'fill="#3b6cf6" fill-opacity="0.08"'),
+    square: () => sPoly([[120, 45], [240, 45], [240, 165], [120, 165]], { fill: ACC, fop: 0.08 }),
+    rectangle: () => sPoly([[80, 60], [280, 60], [280, 160], [80, 160]], { fill: ACC, fop: 0.08 }),
+    triangle: () => sPoly([[90, 170], [270, 170], [150, 45]], { fill: ACC, fop: 0.08 }),
+    rhombus: () => sPoly([[80, 165], [200, 165], [270, 65], [150, 65]], { fill: ACC, fop: 0.08 }),
+    trapezium: () => sPoly([[60, 165], [300, 165], [240, 65], [120, 65]], { fill: ACC, fop: 0.08 }),
+    parallelogram: () => sPoly([[60, 165], [240, 165], [300, 65], [120, 65]], { fill: ACC, fop: 0.08 }),
+    kite: () => sPoly([[180, 30], [240, 85], [180, 185], [120, 85]], { fill: ACC, fop: 0.08 }),
+    pentagon: () => sPoly(regPts(5, 180, 110, 75), { fill: ACC, fop: 0.08 }),
+    hexagon: () => sPoly(regPts(6, 180, 105, 75, 0), { fill: ACC, fop: 0.08 }),
+    octagon: () => sPoly(regPts(8, 180, 105, 75, 22.5), { fill: ACC, fop: 0.08 }),
+    cube: () => oblSvg([[120, 85], [215, 85], [215, 180], [120, 180]], 50, -40),
+    cuboid: () => oblSvg([[80, 105], [245, 105], [245, 180], [80, 180]], 55, -40),
+    'triangular prism': () => oblSvg([[80, 180], [180, 180], [130, 95]], 100, -45),
+    'hexagonal prism': () => oblSvg(regPts(6, 130, 125, 50, 0), 100, -35),
+    cylinder: () => sE(180, 50, 70, 20, { fill: ACC }).replace('fill="#3b6cf6"', 'fill="#3b6cf6" fill-opacity="0.08"') + sL(110, 50, 110, 170) + sL(250, 50, 250, 170) + sP('M110,170 A70,20 0 0 0 250,170') + sP('M110,170 A70,20 0 0 1 250,170', { dash: true, w: 1 }),
+    cone: () => sL(180, 30, 105, 170) + sL(180, 30, 255, 170) + sP('M105,170 A75,22 0 0 0 255,170') + sP('M105,170 A75,22 0 0 1 255,170', { dash: true, w: 1 }),
+    sphere: () => sC(180, 105, 75) + sP('M105,105 A75,20 0 0 0 255,105') + sP('M105,105 A75,20 0 0 1 255,105', { dash: true, w: 1 }),
+    'square-based pyramid': () => sL(100, 170, 220, 170) + sL(220, 170, 270, 135) + sP('M100,170 L150,135 L270,135', { dash: true, w: 1 }) + sL(185, 40, 100, 170) + sL(185, 40, 220, 170) + sL(185, 40, 270, 135) + sL(185, 40, 150, 135, { dash: true, w: 1 }),
+    tetrahedron: () => sL(100, 170, 250, 170) + sL(250, 170, 200, 130) + sL(100, 170, 200, 130, { dash: true, w: 1 }) + sL(170, 40, 100, 170) + sL(170, 40, 250, 170) + sL(170, 40, 200, 130),
+  };
+  const CONF = {
+    circle: ['sphere', 'semicircle', 'cylinder'], square: ['rhombus', 'rectangle', 'cube'], rectangle: ['parallelogram', 'square', 'cuboid'], triangle: ['tetrahedron', 'triangular prism', 'kite'],
+    rhombus: ['kite', 'parallelogram', 'square'], trapezium: ['parallelogram', 'kite', 'rhombus'], parallelogram: ['rhombus', 'trapezium', 'rectangle'], kite: ['rhombus', 'trapezium', 'parallelogram'],
+    pentagon: ['hexagon', 'octagon', 'heptagon'], hexagon: ['pentagon', 'octagon', 'hexagonal prism'], octagon: ['hexagon', 'decagon', 'pentagon'],
+    cube: ['cuboid', 'square', 'square-based pyramid'], cuboid: ['cube', 'rectangle', 'triangular prism'], 'triangular prism': ['tetrahedron', 'square-based pyramid', 'cuboid'], 'hexagonal prism': ['hexagon', 'pentagonal prism', 'hexagonal-based pyramid'],
+    cylinder: ['cone', 'circle', 'sphere'], cone: ['cylinder', 'square-based pyramid', 'triangle'], sphere: ['circle', 'hemisphere', 'cylinder'], 'square-based pyramid': ['tetrahedron', 'triangular prism', 'cone'], tetrahedron: ['square-based pyramid', 'triangular prism', 'triangle'],
+  };
+  const IS3D = (n) => ['cube', 'cuboid', 'triangular prism', 'hexagonal prism', 'cylinder', 'cone', 'sphere', 'square-based pyramid', 'tetrahedron'].includes(n);
+  function cuboidNetSvg(l, w, h, o = {}) {
+    const R = [rect(0, w, w, h), rect(w, w, l, h), rect(w + l, w, w, h), rect(2 * w + l, w, l, h), rect(w, w + h, l, w), rect(w, 0, l, w)];
+    const W0 = 2 * (l + w), H0 = h + 2 * w; const { T } = mkFit([[0, 0], [W0, H0]], 360, 250, 44, 30);
+    let body = '';
+    if (o.grid) { for (let x = 0; x <= W0; x++) { const a = T([x, 0]), b = T([x, H0]); body += sL(a[0], a[1], b[0], b[1], { w: 1, op: 0.15 }); } for (let y = 0; y <= H0; y++) { const a = T([0, y]), b = T([W0, y]); body += sL(a[0], a[1], b[0], b[1], { w: 1, op: 0.15 }); } }
+    R.forEach((q, i) => { body += sPoly(q.map(T), { fill: ACC, fop: o.hiFace === i ? 0.25 : 0.07 }); if (o.letters) { const c = T([q[0][0] + (q[1][0] - q[0][0]) / 2, q[0][1] + (q[2][1] - q[0][1]) / 2]); body += sT(c[0], c[1], o.letters[i], { b: true }); } });
+    if (o.labels) {
+      const lab = (k) => (o.unknown === k ? '?' : `${{ l, w, h }[k]} cm`);
+      let a = T([w, H0]), b = T([w + l, H0]); body += sT((a[0] + b[0]) / 2, a[1] - 10, lab('l'), { fs: 12, c: o.unknown === 'l' ? ACC : undefined });
+      a = T([w + l, w + h]); b = T([w + l, H0]); body += sT(a[0] + 6, (a[1] + b[1]) / 2, lab('w'), { fs: 12, a: 'start', c: o.unknown === 'w' ? ACC : undefined });
+      a = T([0, w]); b = T([0, w + h]); body += sT(a[0] - 5, (a[1] + b[1]) / 2, lab('h'), { fs: 12, a: 'end', c: o.unknown === 'h' ? ACC : undefined });
+    }
+    return svgWrap(360, 250, body, false);
+  }
+
+  addStyles('y9-3d-shapes', [
+    ['Naming 2D & 3D shapes',
+      'A 2D shape is flat and has only length and width; a 3D shape (a solid) also has height. Name 2D shapes from their sides, angles and parallel lines, and 3D shapes from the shapes of their faces and whether they have curved surfaces.',
+      (r) => {
+        if (r.chance(0.45)) {
+          const name = r.pick(Object.keys(SHAPE_PIC)); const d3 = IS3D(name);
+          return { html: `${r.pick(['What is the name of this shape?', 'Name the shape shown in the diagram.', 'Here is a sketch of a shape. What is it called?', 'A pupil sketches this shape. Which name is correct?', 'Which word describes the shape in the diagram?'])}`, diagram: svgWrap(360, 210, SHAPE_PIC[name](), false), ...mcq(r, [name, ...CONF[name]], 0), hint: d3 ? 'Look at the shapes of the faces and whether any surface is curved.' : 'Count the sides and look for equal sides, right angles and parallel sides.',
+            steps: [d3 ? 'It is a 3D solid (dashed lines show hidden edges).' : 'It is a flat 2D shape.', { circle: 'One curved edge; every point is the same distance from the centre.', square: '4 equal sides and 4 right angles.', rectangle: '4 right angles with opposite sides equal (not all four equal).', triangle: '3 straight sides.', rhombus: '4 equal sides, opposite sides parallel, no right angles.', trapezium: 'Exactly one pair of parallel sides.', parallelogram: 'Two pairs of parallel sides, no right angles, neighbouring sides different.', kite: 'Two pairs of equal neighbouring sides and no parallel sides.', pentagon: '5 straight sides.', hexagon: '6 straight sides.', octagon: '8 straight sides.', cube: '6 identical square faces.', cuboid: '6 rectangular faces.', 'triangular prism': 'Two triangular ends joined by rectangles.', 'hexagonal prism': 'Two hexagonal ends joined by rectangles.', cylinder: 'Two circular ends and a curved surface.', cone: 'A circular base and a curved surface rising to a point.', sphere: 'One curved surface, like a ball.', 'square-based pyramid': 'A square base with four triangles meeting at a point.', tetrahedron: 'Four triangular faces.' }[name], `It is ${an(name).replace(name, B(name))}.`] };
+        }
+        const BANK = [
+          ['a solid with one curved surface, one flat circular face and one vertex (a point)', 'cone', ['cylinder', 'sphere', 'square-based pyramid']],
+          ['a solid with two flat circular faces joined by one curved surface', 'cylinder', ['cone', 'sphere', 'hemisphere']],
+          ['a solid with one curved surface and no edges or vertices', 'sphere', ['cylinder', 'circle', 'hemisphere']],
+          ['a solid with six identical square faces', 'cube', ['cuboid', 'square-based pyramid', 'hexagonal prism']],
+          ['a solid with six rectangular faces that are not all squares', 'cuboid', ['cube', 'hexagonal prism', 'triangular prism']],
+          ['a solid with two triangular faces and three rectangular faces', 'triangular prism', ['tetrahedron', 'square-based pyramid', 'cuboid']],
+          ['a solid with four triangular faces', 'tetrahedron', ['triangular prism', 'square-based pyramid', 'octahedron']],
+          ['a solid with one square face and four triangular faces', 'square-based pyramid', ['tetrahedron', 'triangular prism', 'cube']],
+          ['a solid with two hexagonal faces and six rectangular faces', 'hexagonal prism', ['hexagonal-based pyramid', 'hexagon', 'octagonal prism']],
+          ['a flat shape with four equal sides and four right angles', 'square', ['rhombus', 'rectangle', 'cube']],
+          ['a flat shape with four right angles whose opposite sides are equal but whose four sides are not all equal', 'rectangle', ['square', 'parallelogram', 'cuboid']],
+          ['a flat shape with four equal sides but no right angles', 'rhombus', ['square', 'kite', 'trapezium']],
+          ['a flat four-sided shape with exactly one pair of parallel sides', 'trapezium', ['parallelogram', 'kite', 'rhombus']],
+          ['a flat four-sided shape with two pairs of parallel sides, no right angles and neighbouring sides of different lengths', 'parallelogram', ['rhombus', 'rectangle', 'trapezium']],
+          ['a flat four-sided shape with two pairs of equal neighbouring sides and no parallel sides', 'kite', ['rhombus', 'parallelogram', 'trapezium']],
+          ['a flat shape with five straight sides', 'pentagon', ['hexagon', 'octagon', 'pentagonal prism']],
+          ['a flat shape with six straight sides', 'hexagon', ['pentagon', 'octagon', 'hexagonal prism']],
+          ['a flat shape with eight straight sides', 'octagon', ['hexagon', 'decagon', 'pentagon']],
+          ['a flat shape with one curved edge where every point is the same distance from the centre', 'circle', ['sphere', 'oval', 'semicircle']],
+        ];
+        const [desc, name, wr] = r.pick(BANK);
+        return { html: `${r.pick(['Which shape is', 'What is the name of', 'Give the name of'])} ${desc}?`, ...mcq(r, [name, ...wr], 0), hint: 'Picture the shape. Is it flat (2D) or solid (3D)?',
+          steps: [desc.startsWith('a solid') ? 'It is a 3D solid.' : 'It is a flat 2D shape.', `The description matches ${an(name).replace(name, B(name))}.`] };
+      }],
+    ['Nets of cuboids',
+      'A cuboid has three pairs of identical rectangular faces, so its net has six rectangles. Drawn on centimetre squared paper, the area of the net is the surface area of the cuboid. When folded, faces that are separated by one face in the strip of four end up opposite each other.',
+      (r) => {
+        let l, w, h; do { l = r.int(2, 6); w = r.int(1, 4); h = r.int(1, 5); } while (l === w && w === h);
+        const v = r.int(0, 3); const SA = 2 * (l * w + l * h + w * h);
+        const ctx = r.pick(['The diagram shows the net of a cuboid drawn on centimetre squared paper.', 'Ana draws the net of a cuboid on a 1 cm grid.', 'A box template (the net of a cuboid) is printed on centimetre squared paper.', 'Here is the net of a cuboid on a centimetre grid.']);
+        if (v === 0) return { html: `${ctx} The cuboid is ${l} cm long, ${w} cm wide and ${h} cm high. Work out the total area of the net.`, diagram: cuboidNetSvg(l, w, h, { grid: true, labels: true }), unit: 'cm²', ...nAns(SA, { unit: 'cm²' }), hint: 'The area of the net is the surface area of the cuboid.',
+          steps: [`Pairs of faces: ${l} × ${w} = ${l * w}, ${l} × ${h} = ${l * h}, ${w} × ${h} = ${w * h}`, `Each appears twice: 2 × (${l * w} + ${l * h} + ${w * h})`, `Area of net = ${B(SA)} cm²`] };
+        if (v === 1) return { html: `${ctx} It folds up to make a cuboid. Use the measurements on the net to work out the volume of the cuboid.`, diagram: cuboidNetSvg(l, w, h, { grid: true, labels: true }), unit: 'cm³', ...nAns(l * w * h, { unit: 'cm³' }), hint: 'Find the length, width and height of the folded cuboid.',
+          steps: [`The cuboid is ${l} cm by ${w} cm by ${h} cm.`, `Volume = ${l} × ${w} × ${h} = ${B(l * w * h)} cm³`] };
+        if (v === 2) {
+          const letters = r.sample(['A', 'B', 'C', 'D', 'E', 'F'], 6); const opp = [2, 3, 0, 1, 5, 4]; const f = r.int(0, 5);
+          return { html: `${ctx} The faces are labelled with letters. When the net is folded into a cuboid, which face is opposite face ${B(letters[f])}?`, diagram: cuboidNetSvg(l, w, h, { grid: true, letters, hiFace: f }), ...mcq(r, [letters[opp[f]], ...letters.filter((x, i) => i !== f && i !== opp[f]).slice(0, 3)], 0, { format: 'Choose one answer.' }), hint: 'Imagine folding: in a strip of four faces, faces two apart end up opposite.',
+            steps: [f >= 4 ? 'The two faces attached above and below the strip fold to become the top and bottom.' : 'In the strip of four faces, faces two places apart fold to opposite sides.', `Face ${letters[f]} is opposite face ${B(letters[opp[f]])}.`] };
+        }
+        const which = r.pick([['top', 4, l * w, `${l} × ${w}`], ['front', 1, l * h, `${l} × ${h}`], ['end', 0, w * h, `${w} × ${h}`]]);
+        return { html: `${ctx} The cuboid is ${l} cm long, ${w} cm wide and ${h} cm high. How many centimetre squares does the shaded face cover?`, diagram: cuboidNetSvg(l, w, h, { grid: true, labels: true, hiFace: which[1] }), unit: 'cm²', ...nAns(which[2], { unit: 'cm²' }), hint: 'Find the two edges of the shaded rectangle.',
+          steps: [`The shaded rectangle measures ${which[3]} cm.`, `Area = ${B(which[2])} cm², so it covers ${which[2]} squares.`] };
+      }],
+    ['Area of 2D shapes (review)',
+      'Rectangle: base × height. Triangle: ½ × base × perpendicular height. Parallelogram: base × perpendicular height. Trapezium: ½(a + b) × h. Circle: πr². Always use the perpendicular height, never a sloping side.',
+      (r) => {
+        const v = r.pick(['rect', 'tri', 'para', 'trap', 'circ', 'circ']); const u = r.pick(['cm', 'm']);
+        if (v === 'rect') { const b = r.int(3, 20), h = r.int(2, 15); return { html: `${r.pick(['A rectangle', 'A rectangular rug', 'A phone screen (a rectangle)', 'A rectangular field'])} is ${b} ${u} long and ${h} ${u} wide. Work out its area.`, diagram: shapeSvg([[0, 0], [b, 0], [b, h], [0, h]], [`${b} ${u}`, `${h} ${u}`, '', '']), unit: u + '²', ...nAns(b * h, { unit: u + '²' }), hint: 'Base × height.', steps: ['Area = base × height', `= ${b} × ${h} = ${B(b * h)} ${u}²`] }; }
+        if (v === 'tri') { const b = r.int(3, 20), h = r.int(2, 15), off = r.int(1, b - 1); const sl = Math.hypot(off, h); return { html: `${r.pick(['A triangle', 'A triangular flag', 'A triangular garden bed', 'A triangular sail'])} has base ${b} ${u}, perpendicular height ${h} ${u} and a sloping side of ${r1(sl)} ${u}. Work out its area.`, diagram: shapeSvg([[0, 0], [b, 0], [off, h]], [`${b} ${u}`, '', `${r1(sl)} ${u}`], { height: [[off, h], [off, 0], `${h} ${u}`] }), unit: u + '²', ...nAns(b * h / 2, { unit: u + '²' }), hint: '½ × base × perpendicular height.', steps: ['Area = ½ × base × perpendicular height (the sloping side is not needed)', `= ½ × ${b} × ${h} = ${B(ds(b * h / 2))} ${u}²`] }; }
+        if (v === 'para') { const b = r.int(4, 18), h = r.int(2, 12), s = r.int(1, 5); const sl = Math.hypot(s, h); return { html: `${r.pick(['A parallelogram', 'A parallelogram-shaped tile', 'A road sign in the shape of a parallelogram'])} has base ${b} ${u}, sloping side ${r1(sl)} ${u} and perpendicular height ${h} ${u}. Work out its area.`, diagram: shapeSvg([[0, 0], [b, 0], [b + s, h], [s, h]], [`${b} ${u}`, `${r1(sl)} ${u}`, '', ''], { height: [[s, h], [s, 0], `${h} ${u}`] }), unit: u + '²', ...nAns(b * h, { unit: u + '²' }), hint: 'Base × perpendicular height.', steps: ['Area = base × perpendicular height', `= ${b} × ${h} = ${B(b * h)} ${u}²`] }; }
+        if (v === 'trap') { const a = r.int(2, 12), b = a + r.int(2, 10), h = r.int(2, 12), off = r.int(0, b - a); const A = (a + b) * h / 2; return { html: `${r.pick(['A trapezium', 'A trapezium-shaped lawn', 'The side of a skip (a trapezium)'])} has parallel sides ${a} ${u} and ${b} ${u}, and perpendicular height ${h} ${u}. Work out its area.`, diagram: shapeSvg([[0, 0], [b, 0], [off + a, h], [off, h]], [`${b} ${u}`, '', `${a} ${u}`, ''], { height: [[off + a / 2, h], [off + a / 2, 0], `${h} ${u}`] }), unit: u + '²', ...nAns(A, { unit: u + '²' }), hint: 'Add the parallel sides, halve, multiply by the height.', steps: ['Area = ½(a + b)h', `= ½ × (${a} + ${b}) × ${h} = ½ × ${a + b} × ${h}`, `= ${B(ds(A))} ${u}²`] }; }
+        const rr = r.int(2, 15); const useD = r.chance(0.4); const inPi = r.chance();
+        return { html: `${r.pick(['A circle', 'A circular pond', 'A round table top', 'A circular badge'])} has ${useD ? 'diameter' : 'radius'} ${B((useD ? 2 * rr : rr) + ' ' + u)}. Work out its area. Give your answer ${inPi ? 'in terms of π' : 'to 1 decimal place'}.`, diagram: circleSvg({ mode: useD ? 'd' : 'r', label: `${useD ? 2 * rr : rr} ${u}` }), unit: u + '²', ...(inPi ? piAns(rr * rr) : nAns(Math.PI * rr * rr, { dp: 1, unit: u + '²' })), format: inPi ? PI_FMT : 'Give your answer to 1 decimal place.', hint: 'Area = πr². Use the radius.',
+          steps: [useD ? `Radius = ${2 * rr} ÷ 2 = ${rr} ${u}` : `Radius = ${rr} ${u}`, `Area = π × ${rr}² = ${piT(rr * rr)}`, inPi ? `Area = ${B(piT(rr * rr))} ${u}²` : `= ${fx(Math.PI * rr * rr, 3)}… = ${B(r1(Math.PI * rr * rr))} ${u}²`] };
+      }],
+  ]);
+
+  addStyles('y9-volume-surface-area', [
+    ['Volume of prisms by cross-section',
+      'Volume of any prism (or cylinder) = area of cross-section × length. Count cubes layer by layer for solids made of cubes, and give answers in terms of π when asked.',
+      (r) => {
+        const v = r.int(0, 5);
+        if (v === 0) {
+          const l = r.int(2, 8), w = r.int(2, 6), h = r.int(2, 6);
+          return { html: `${r.pick(['A cuboid is built from centimetre cubes.', 'Toby stacks 1 cm cubes to make a solid cuboid.', 'A block of sugar cubes forms a cuboid.'])} It is ${l} cubes long, ${w} cubes wide and ${h} cubes high. How many cubes are used, and so what is the volume in cm³?`, diagram: cuboidSvg(`${l} cubes`, `${w} cubes`, `${h} cubes`), unit: 'cm³', ...nAns(l * w * h, { unit: 'cm³' }), hint: 'Count one layer, then multiply by the number of layers.',
+            steps: [`One layer: ${l} × ${w} = ${l * w} cubes`, `${h} layers: ${l * w} × ${h} = ${l * w * h} cubes`, `Volume = ${B(l * w * h)} cm³`] };
+        }
+        if (v === 1) {
+          const A = r.int(6, 80), L = r.int(3, 25);
+          return { html: `${r.pick(['A prism', 'A chocolate bar (a prism)', 'A metal girder (a prism)', 'A length of skirting board (a prism)'])} has a cross-section of area ${B(A + ' cm²')} and is ${B(L + ' cm')} long. Work out its volume.`, unit: 'cm³', ...nAns(A * L, { unit: 'cm³' }), hint: 'Area of cross-section × length.', steps: ['Volume = area of cross-section × length', `= ${A} × ${L} = ${B(A * L)} cm³`] };
+        }
+        if (v === 2) {
+          const a = r.int(2, 10), b = a + r.int(2, 8), h = r.int(2, 9), L = r.int(4, 20), off = r.int(0, b - a); const A = (a + b) * h / 2;
+          return { html: `A prism has a trapezium cross-section (shown). The parallel sides are ${a} cm and ${b} cm, the perpendicular height is ${h} cm, and the prism is ${B(L + ' cm')} long. Work out its volume.`, diagram: shapeSvg([[0, 0], [b, 0], [off + a, h], [off, h]], [`${b} cm`, '', `${a} cm`, ''], { height: [[off + a / 2, h], [off + a / 2, 0], `${h} cm`], fill: true }), unit: 'cm³', ...nAns(A * L, { unit: 'cm³' }), hint: 'Find the trapezium area first.',
+            steps: [`Cross-section: ½ × (${a} + ${b}) × ${h} = ${ds(A)} cm²`, `Volume = ${ds(A)} × ${L} = ${B(ds(A * L))} cm³`] };
+        }
+        if (v === 3) {
+          const W0 = r.int(5, 12), H0 = r.int(5, 12), cw = r.int(2, W0 - 2), ch = r.int(2, H0 - 2), L = r.int(3, 20); const A = W0 * H0 - cw * ch;
+          return { html: `A prism has an L-shaped cross-section (shown): a ${W0} cm by ${H0} cm rectangle with a ${cw} cm by ${ch} cm rectangle cut from one corner. The prism is ${B(L + ' cm')} long. Work out its volume.`,
+            diagram: shapeSvg([[0, 0], [W0, 0], [W0, H0 - ch], [W0 - cw, H0 - ch], [W0 - cw, H0], [0, H0]], [`${W0} cm`, '', `${cw} cm`, `${ch} cm`, '', `${H0} cm`], { fill: true, inside: [3] }), unit: 'cm³', ...nAns(A * L, { unit: 'cm³' }), hint: 'Area of the big rectangle minus the cut-out, then × length.',
+            steps: [`Cross-section: ${W0} × ${H0} − ${cw} × ${ch} = ${W0 * H0} − ${cw * ch} = ${A} cm²`, `Volume = ${A} × ${L} = ${B(A * L)} cm³`] };
+        }
+        if (v === 4) {
+          const rr = r.int(2, 10), h = r.int(2, 20); const useD = r.chance(0.4);
+          return { html: `${r.pick(['A cylinder', 'A cylindrical can', 'A round cake tin (a cylinder)', 'A cylindrical candle'])} has ${useD ? 'diameter' : 'radius'} ${B((useD ? 2 * rr : rr) + ' cm')} and height ${B(h + ' cm')}. Work out its volume. Give your answer in terms of π.`, diagram: cylSvg(`${useD ? 2 * rr : rr} cm`, `${h} cm`, useD), unit: 'cm³', ...piAns(rr * rr * h), format: PI_FMT, hint: 'V = πr²h; leave π in the answer.',
+            steps: [useD ? `Radius = ${2 * rr} ÷ 2 = ${rr} cm` : `Radius = ${rr} cm`, `Area of circle = π × ${rr}² = ${piT(rr * rr)} cm²`, `Volume = ${piT(rr * rr)} × ${h} = ${B(piT(rr * rr * h))} cm³`] };
+        }
+        const A = r.int(5, 60), L = r.int(3, 25);
+        return { html: `A prism has volume ${B(A * L + ' cm³')}. The area of its cross-section is ${B(A + ' cm²')}. How long is the prism?`, unit: 'cm', ...nAns(L, { unit: 'cm' }), hint: 'Length = volume ÷ area of cross-section.', steps: ['Volume = area of cross-section × length, so length = volume ÷ area', `Length = ${A * L} ÷ ${A} = ${B(L)} cm`] };
+      }],
+  ]);
+
+  // ---- protractor ----
+  function protractorSvg(alpha, fromRight) {
+    const O = [180, 190], R = 145; let body = sP(`M${O[0] - R},${O[1]} A${R},${R} 0 0 1 ${O[0] + R},${O[1]} Z`, { fill: ACC, fop: 0.04, w: 1.5 });
+    for (let a = 0; a <= 180; a += 5) { const t = a % 10 ? 6 : 11; body += sL(O[0] + R * cosD(a), O[1] - R * sinD(a), O[0] + (R - t) * cosD(a), O[1] - (R - t) * sinD(a), { w: 1 }); }
+    for (let a = 0; a <= 180; a += 20) { const up = a % 180 ? 0 : 9; body += sT(O[0] + (R - 20) * cosD(a), O[1] - (R - 20) * sinD(a) - up, String(180 - a), { fs: 9 }) + sT(O[0] + (R - 38) * cosD(a), O[1] - (R - 38) * sinD(a) - up, String(a), { fs: 9, c: ACC }); }
+    const end = fromRight ? [O[0] + R + 10, O[1]] : [O[0] - R - 10, O[1]]; const arm = [O[0] + (R + 12) * cosD(alpha), O[1] - (R + 12) * sinD(alpha)];
+    body += sL(O[0], O[1], end[0], end[1], { w: 3 }) + sL(O[0], O[1], arm[0], arm[1], { w: 3 }) + angArc(O, end, arm, 26, '', { w: 2.5, c: ACC }) + dot(O[0], O[1]);
+    return svgWrap(360, 210, body, false);
+  }
+  const TRI_STEPS = {
+    perpPoint: ['Put the compass point on P and draw an arc that crosses the line in two places.', 'From each of those two points, draw arcs of the same radius that cross on the other side of the line.', 'Join P to the point where the two arcs cross.'],
+    perpBis: ['Open the compasses to more than half the length of AB.', 'With the point on A and then on B, draw arcs above and below the line (same radius).', 'Join the two points where the arcs cross.'],
+    angBis: ['Put the compass point on the vertex and draw an arc crossing both arms.', 'From each crossing point, draw arcs of the same radius that cross inside the angle.', 'Join the vertex to the point where the arcs cross.'],
+  };
+  const TRI_NAME = { perpPoint: 'the perpendicular from a point P to a line', perpBis: 'the perpendicular bisector of a line AB', angBis: 'the bisector of an angle' };
+  // ---- polyominoes for congruent figures ----
+  const TFS = [[(x, y) => [-y, x], 'rotated 90° clockwise'], [(x, y) => [-x, -y], 'rotated 180°'], [(x, y) => [y, -x], 'rotated 90° anticlockwise'], [(x, y) => [-x, y], 'reflected in a vertical mirror line'], [(x, y) => [x, -y], 'reflected in a horizontal mirror line'], [(x, y) => [-y, -x], 'reflected and then rotated'], [(x, y) => [y, x], 'reflected in a diagonal mirror line']];
+  const norm = (cells) => { const mx = Math.min(...cells.map((c) => c[0])), my = Math.min(...cells.map((c) => c[1])); return cells.map(([x, y]) => [x - mx, y - my]).sort((a, b) => a[0] - b[0] || a[1] - b[1]); };
+  const key = (cells) => norm(cells).map((c) => c.join(',')).join(';');
+  const canon = (cells) => [cells, ...TFS.map(([f]) => cells.map(([x, y]) => f(x, y)))].map(key).sort()[0];
+  function polyo(r, n) {
+    const cells = [[0, 0]]; const has = (x, y) => cells.some((c) => c[0] === x && c[1] === y);
+    while (cells.length < n) { const [x, y] = r.pick(cells); const [dx, dy] = r.pick([[1, 0], [-1, 0], [0, 1], [0, -1]]); const nx = x + dx, ny = y + dy; const t = norm([...cells, [nx, ny]]); if (!has(nx, ny) && Math.max(...t.map((c) => c[0])) < 4 && Math.max(...t.map((c) => c[1])) < 4) cells.push([nx, ny]); }
+    return norm(cells);
+  }
+  function connected(cells) { const seen = new Set(['0']); const st = [0]; while (st.length) { const i = st.pop(); cells.forEach((c, j) => { if (!seen.has(String(j)) && Math.abs(c[0] - cells[i][0]) + Math.abs(c[1] - cells[i][1]) === 1) { seen.add(String(j)); st.push(j); } }); } return seen.size === cells.length; }
+  function mutate(r, cells) {
+    for (let k = 0; k < 200; k++) { const c = cells.slice(); c.splice(r.int(0, c.length - 1), 1); const [x, y] = r.pick(c); const [dx, dy] = r.pick([[1, 0], [-1, 0], [0, 1], [0, -1]]); if (c.some((q) => q[0] === x + dx && q[1] === y + dy)) continue; c.push([x + dx, y + dy]); const t = norm(c); if (connected(t) && canon(t) !== canon(cells) && Math.max(...t.map((q) => q[0])) < 4 && Math.max(...t.map((q) => q[1])) < 4) return t; }
+    return null;
+  }
+  const drawPoly = (cells, x0, y0, sz, hi) => cells.map(([x, y]) => sPoly(rect(x0 + x * sz, y0 + y * sz, sz, sz), { fill: ACC, fop: hi ? 0.35 : 0.1 })).join('');
+
+  addStyles('y9-constructions', [
+    ['Measuring angles with a protractor',
+      'Put the centre of the protractor on the vertex and line up 0 with one arm. Read the scale that starts at 0 on that arm — not the other one. Check: an acute angle must be less than 90° and an obtuse angle more than 90°. For a reflex angle, measure the angle on the other side and subtract it from 360°.',
+      (r) => {
+        const v = r.int(0, 5);
+        if (v <= 2) {
+          let a; do { a = 5 * r.int(3, 33); } while (a === 90); const fr = r.chance(); const ans = fr ? a : 180 - a;
+          return { html: `${r.pick(['A protractor is placed on an angle as shown.', 'Ella measures the marked angle with a protractor.', 'The diagram shows a protractor lined up on an angle.', 'A protractor is used to measure the angle between the two thick lines.'])} What is the size of the marked angle?`, diagram: protractorSvg(a, fr), unit: '°', ...nAns(ans, { unit: '°' }), hint: 'Which scale has 0 on the starting arm?',
+            steps: [`The starting arm goes through 0 on the ${fr ? 'inner (blue) scale on the right' : 'outer (black) scale on the left'}, so read that scale.`, `The other arm points to ${ans} on that scale (and ${180 - ans} on the other scale).`, `The angle is ${ans < 90 ? 'acute' : 'obtuse'}, so ${B(ans + '°')} makes sense.`] };
+        }
+        if (v === 3) {
+          const R0 = r.int(185, 355);
+          return { html: `${r.pick(['Sam wants to draw', 'You need to draw', 'Priya is asked to draw'])} a reflex angle of ${B(R0 + '°')} with a 180° protractor. What size of angle should be measured on the other side of the line?`, unit: '°', ...nAns(360 - R0, { unit: '°' }), hint: 'Angles around a point add up to 360°.', steps: ['The reflex angle and the angle on the other side make a full turn: 360°.', `360° − ${R0}° = ${B(360 - R0 + '°')}`] };
+        }
+        if (v === 4) {
+          let a; do { a = r.int(10, 170); } while (a === 90); const wrong = 180 - a;
+          return { html: `${r.pick(['Ben', 'Mia', 'Leo', 'Zara'])} measures ${a < 90 ? 'an acute' : 'an obtuse'} angle but reads the wrong scale on the protractor and gets ${B(wrong + '°')}. What is the actual size of the angle?`, unit: '°', ...nAns(a, { unit: '°' }), hint: 'The two scales add up to 180°.', steps: ['The two scales on a protractor always add up to 180° at the same point.', `Actual angle = 180° − ${wrong}° = ${B(a + '°')}`, `Check: ${a}° is ${a < 90 ? 'acute' : 'obtuse'} ✓`] };
+        }
+        const a = r.pick([r.int(5, 89), 90, r.int(91, 179), 180, r.int(181, 359)]); const k = a < 90 ? 0 : a === 90 ? 1 : a < 180 ? 2 : a === 180 ? 3 : 4; const O = ['acute', 'right angle', 'obtuse', 'straight line', 'reflex'];
+        return { html: `What type of angle is ${B(a + '°')}?`, ...mcq(r, O, k), hint: 'Compare with 90°, 180° and 360°.', steps: ['Acute: less than 90°. Right: 90°. Obtuse: between 90° and 180°. Straight: 180°. Reflex: between 180° and 360°.', `${a}° is ${B(O[k])}.`] };
+      }],
+    ['Constructing triangles & perpendiculars',
+      'With three sides (SSS) use a ruler and compasses; with two sides and the included angle (SAS) or two angles and the side between them (ASA) use a ruler and protractor. The shortest distance from a point to a line is along the perpendicular, which you construct with compasses.',
+      (r) => {
+        const v = r.int(0, 5);
+        if (v === 0) {
+          const t = r.pick(['SSS', 'SAS', 'ASA']); const [P, Q, Rr] = r.pick([['A', 'B', 'C'], ['P', 'Q', 'R'], ['D', 'E', 'F'], ['X', 'Y', 'Z']]);
+          const s1 = r.int(4, 10), s2 = r.int(4, 10), s3 = r.int(Math.abs(s1 - s2) + 1, s1 + s2 - 1), a1 = r.int(30, 80), a2 = r.int(30, 80);
+          const info = t === 'SSS' ? `${P}${Q} = ${s1} cm, ${Q}${Rr} = ${s2} cm and ${P}${Rr} = ${s3} cm` : t === 'SAS' ? `${P}${Q} = ${s1} cm, angle ${P}${Q}${Rr} = ${a1}° and ${Q}${Rr} = ${s2} cm` : `${P}${Q} = ${s1} cm, angle ${Rr}${P}${Q} = ${a1}° and angle ${P}${Q}${Rr} = ${a2}°`;
+          const O = ['SSS: ruler and compasses', 'SAS: ruler and protractor', 'ASA: ruler and protractor', 'RHS: ruler and compasses only'];
+          return { html: `${r.pick(['A pupil must construct triangle', 'Construct triangle', 'An exam question asks you to construct triangle'])} ${P}${Q}${Rr} with ${info}. Which type of information is this, and what equipment is needed?`, ...mcq(r, O, ['SSS', 'SAS', 'ASA'].indexOf(t)), hint: 'Count the sides and angles given, and check whether the angle is between the sides.',
+            steps: [t === 'SSS' ? 'Three sides are given.' : t === 'SAS' ? `Two sides with the angle between them (at ${Q}).` : `Two angles with the side ${P}${Q} between them.`, t === 'SSS' ? 'Draw one side with a ruler, then use compasses set to the other two lengths from each end.' : 'Draw the side with a ruler and measure the angle(s) with a protractor.', `Answer: ${B(O[['SSS', 'SAS', 'ASA'].indexOf(t)])}`] };
+        }
+        if (v === 1) {
+          let a, b; do { a = r.int(25, 100); b = r.int(25, 100); } while (a + b > 160);
+          return { html: `${r.pick(['Kim', 'Josh', 'Amira', 'Theo'])} constructs triangle ABC with AB = ${r.int(5, 12)} cm, angle CAB = ${B(a + '°')} and angle ABC = ${B(b + '°')}. When finished, what should angle ACB measure?`, unit: '°', ...nAns(180 - a - b, { unit: '°' }), hint: 'Angles in a triangle add up to 180°.', steps: ['Angles in a triangle add up to 180°.', `Angle ACB = 180° − ${a}° − ${b}° = ${B(180 - a - b + '°')}`] };
+        }
+        if (v === 2) {
+          const eq = r.chance(); if (eq) { const s = r.int(3, 12); return { html: `A triangle is constructed with compasses so that all three sides are ${B(s + ' cm')}. What size will each angle be?`, unit: '°', ...nAns(60, { unit: '°' }), hint: 'Equal sides give equal angles.', steps: ['All three sides are equal, so it is equilateral and all angles are equal.', `180° ÷ 3 = ${B('60°')}`] }; }
+          const k = r.int(1, 4), tr = r.pick([[3, 4, 5], [5, 12, 13], [6, 8, 10]]); const sd = r.shuffle(tr.map((x) => x * k));
+          return { html: `A triangle is constructed (SSS) with sides ${sd.join(' cm, ')} cm. Use Pythagoras' theorem to decide the size of its largest angle.`, unit: '°', ...nAns(90, { unit: '°' }), hint: 'Check whether a² + b² = c² for the longest side.', steps: [`${tr[0] * k}² + ${tr[1] * k}² = ${(tr[0] * k) ** 2} + ${(tr[1] * k) ** 2} = ${(tr[2] * k) ** 2} = ${tr[2] * k}²`, `So the triangle is right-angled, and the largest angle (opposite the ${tr[2] * k} cm side) is ${B('90°')}.`] };
+        }
+        if (v === 3) {
+          const [p, q, c] = r.pick([[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15]]); const sw = r.chance(); const d = sw ? q : p, f = sw ? p : q; const ask = r.chance();
+          return { html: `F is the foot of the perpendicular from point P to a straight road. PF = ${B(d + ' m')}. ${ask ? `Point Q is on the road, ${f} m from F. How far is P from Q?` : `Point Q is on the road and PQ = ${c} m. How far is Q from F?`}`, unit: 'm', ...nAns(ask ? c : f, { unit: 'm' }), hint: 'PF meets the road at 90°, so use Pythagoras.',
+            steps: ['The perpendicular meets the road at 90°, so triangle PFQ is right-angled at F.', ask ? `PQ² = ${d}² + ${f}² = ${d * d + f * f}` : `QF² = ${c}² − ${d}² = ${c * c - d * d}`, ask ? `PQ = √${c * c} = ${B(c)} m` : `QF = √${f * f} = ${B(f)} m`] };
+        }
+        if (v === 4) {
+          const d = r.int(3, 12); const others = r.sample([d + r.int(1, 3), d + r.int(4, 7), d + r.int(8, 12)], 3);
+          return { html: `A lifeguard at point P measures the distances to four points on a straight shoreline: ${r.shuffle([d, ...others]).map((x) => x + ' m').join(', ')}. One of these points is the foot of the perpendicular from P. What is the shortest distance from P to the shoreline?`, unit: 'm', ...nAns(d, { unit: 'm' }), hint: 'The perpendicular distance is the shortest.', steps: ['The shortest distance from a point to a line is the perpendicular distance.', `Every other point is further away, so the shortest distance is ${B(d)} m.`] };
+        }
+        const kind = r.pick(Object.keys(TRI_STEPS)); const st = r.int(0, 2);
+        const wrong = ['Measure a 90° angle at P with a protractor and draw the line.', 'Draw a circle centred on the middle of the line.', 'Fold the paper in half and draw along the fold.', 'Join the two ends of the line to P.'];
+        return { html: `When constructing ${B(TRI_NAME[kind])} with ruler and compasses, what is step ${B(st + 1)}?`, ...mcq(r, [TRI_STEPS[kind][st], ...TRI_STEPS[kind].filter((_, i) => i !== st), r.pick(wrong)], 0), hint: 'Picture the arcs you draw first, then where they cross.',
+          steps: TRI_STEPS[kind].map((x, i) => `Step ${i + 1}: ${i === st ? B(x) : x}`) };
+      }],
+    ['Congruent figures',
+      'Congruent shapes are identical in shape and size: one can be rotated, reflected or moved to fit exactly on top of the other. A shape that has been stretched or has a different arrangement is not congruent.',
+      (r) => {
+        let P, bad; do { P = polyo(r, r.int(4, 6)); bad = mutate(r, P); } while (!bad);
+        const notQ = r.chance(0.4);
+        const tf = r.sample(TFS, 3);
+        let cand, why;
+        if (!notQ) { const t = tf[0]; const bads = [bad]; for (let k = 0; k < 2; k++) { let m; do { m = mutate(r, P); } while (!m); bads.push(m); } cand = [norm(P.map(([x, y]) => t[0](x, y))), ...bads.map((b) => { const f = r.pick(TFS)[0]; return norm(b.map(([x, y]) => f(x, y))); })]; why = [`It is shape P ${t[1]}.`, 'The other shapes have a square in a different place, so no rotation or reflection makes them fit.']; }
+        else { cand = [norm(bad), ...tf.map((t) => norm(P.map(([x, y]) => t[0](x, y))))]; why = [`The other three are shape P ${tf.map((t) => t[1]).join(', ')}.`, 'The odd one out has a square in a different place, so it cannot fit exactly on P.']; }
+        const m = mcq(r, cand.map((_, i) => String(i)), 0); const order = m.options.map(Number);
+        let body = drawPoly(P, 16, 50, 15, true) + sT(46, 125, 'P', { b: true, c: ACC });
+        order.forEach((ci, p) => { body += drawPoly(cand[ci], 92 + p * 67, 50, 15, false) + sT(122 + p * 67, 125, LET[p], { b: true }); });
+        const opts = order.map((_, p) => `Shape ${LET[p]}`); const ap = m.check.correct[0];
+        return { html: `${r.pick(['Shapes are cut from squared paper.', 'Tiles are drawn on a square grid.', 'A puzzle uses pieces made from squares.', 'Ravi draws some shapes on centimetre squared paper.', 'A game has pieces made of identical squares.'])} ${notQ ? r.pick(['Three of the shapes A to D are congruent to shape P. Which one is NOT congruent to P?', 'Which shape is not congruent to shape P?']) : r.pick(['Which shape is congruent to shape P?', 'Only one of shapes A to D is congruent to shape P. Which one?', 'Shape P is drawn on a grid. Which of shapes A to D is congruent to it?'])} (P has ${P.length} squares.)`,
+          diagram: svgWrap(360, 150, body, false), options: opts, multi: false, answer: m.answer, check: m.check, answerHtml: `${LET[ap]}) Shape ${LET[ap]}`, format: 'Choose one answer.', hint: 'Imagine turning or flipping shape P. Do the squares line up exactly?',
+          steps: [...why, `Answer: ${B('Shape ' + LET[ap])}`] };
+      }],
+  ]);
+
+  // ---- semicircle diagram ----
+  function semiSvg(a, o) {
+    const O = [180, 180], R = 135; const C = [O[0] + R * cosD(180 - 2 * a), O[1] - R * sinD(180 - 2 * a)]; const A = [O[0] - R, O[1]], Bq = [O[0] + R, O[1]];
+    let body = sP(`M${A[0]},${A[1]} A${R},${R} 0 0 1 ${Bq[0]},${Bq[1]}`) + sL(A[0], A[1], Bq[0], Bq[1]) + sPoly([A, Bq, C], { fill: ACC, fop: 0.06 });
+    if (o.radii) body += sL(O[0], O[1], C[0], C[1], { dash: true, w: 1.5 }) + dot(O[0], O[1]) + sT(O[0], O[1] + 15, 'O', { b: true });
+    body += sT(A[0] - 10, A[1], 'A', { b: true }) + sT(Bq[0] + 10, Bq[1], 'B', { b: true }) + sT(C[0], C[1] - 13, 'C', { b: true });
+    if (o.la) body += angArc(A, Bq, C, 30, o.la, { lr: 14, fs: 12 });
+    if (o.lb) body += angArc(Bq, C, A, 30, o.lb, { lr: 14, fs: 12 });
+    if (o.lc) body += angArc(C, A, Bq, 20, o.lc, { lr: 14, fs: 12, c: ACC, tc: ACC });
+    return svgWrap(360, 215, body);
+  }
+  const QP = {
+    square: ['all sides equal', 'all angles 90°', 'opposite sides parallel', 'opposite angles equal', 'diagonals cross at right angles', 'diagonals equal in length', 'four lines of symmetry', 'opposite sides equal', 'two pairs of equal neighbouring sides'],
+    rectangle: ['all angles 90°', 'opposite sides parallel', 'opposite angles equal', 'diagonals equal in length', 'opposite sides equal', 'rotational symmetry of order 2'],
+    rhombus: ['all sides equal', 'opposite sides parallel', 'opposite angles equal', 'diagonals cross at right angles', 'opposite sides equal', 'rotational symmetry of order 2', 'two pairs of equal neighbouring sides'],
+    parallelogram: ['opposite sides parallel', 'opposite angles equal', 'opposite sides equal', 'rotational symmetry of order 2'],
+    kite: ['two pairs of equal neighbouring sides', 'no parallel sides', 'diagonals cross at right angles', 'exactly one line of symmetry', 'only one pair of equal opposite angles'],
+    trapezium: ['exactly one pair of parallel sides'],
+    'isosceles trapezium': ['exactly one pair of parallel sides', 'diagonals equal in length', 'exactly one line of symmetry'],
+  };
+  const ALLP = [...new Set(Object.values(QP).flat())];
+
+  addStyles('y9-angle-deduction', [
+    ['Testing conjectures with angles',
+      'A conjecture is a statement you think is true. Test it with examples: if every example works it is supported, but only a proof using angle facts shows it is always true. A single counterexample is enough to show it is false.',
+      (r) => {
+        const v = r.int(0, 4);
+        if (v === 0) {
+          const a = r.int(15, 75), b = 90 - a;
+          return { html: `${r.pick(['Leah', 'Omar', 'Grace', 'Ivan'])} conjectures that the angle in a semicircle is always 90°. To test it, triangle ABC is drawn with AB a diameter and C on the semicircle. Angle CAB = ${B(a + '°')} and angle CBA = ${B(b + '°')}. Work out angle ACB.`, diagram: semiSvg(a, { la: a + '°', lb: b + '°', lc: 'x' }), unit: '°', ...nAns(90, { unit: '°' }), hint: 'Angles in a triangle add up to 180°.',
+            steps: ['Angles in a triangle add up to 180°.', `Angle ACB = 180° − ${a}° − ${b}° = ${B('90°')}`, 'This example supports the conjecture (but one example does not prove it).'] };
+        }
+        if (v === 1) {
+          const a = r.int(15, 75); const ask = r.pick(['OCA', 'BOC', 'OBC']);
+          const ans = { OCA: a, BOC: 2 * a, OBC: 90 - a }[ask];
+          const steps = [`OA = OC (radii), so triangle OAC is isosceles: angle OCA = ${a}°.`];
+          if (ask !== 'OCA') steps.push(`Angle AOC = 180° − ${a}° − ${a}° = ${180 - 2 * a}°, so angle BOC = 180° − ${180 - 2 * a}° = ${2 * a}° (angles on a straight line).`);
+          if (ask === 'OBC') steps.push(`OB = OC, so angle OBC = (180° − ${2 * a}°) ÷ 2 = ${90 - a}°.`, `So angle ACB = ${a}° + ${90 - a}° = 90° — it works for any a.`);
+          steps.push(`Angle ${ask} = ${B(ans + '°')}`);
+          return { html: `To prove the angle in a semicircle is 90°, O is the centre of the semicircle with diameter AB, and C is on the arc, so OA = OB = OC. Angle OAC = ${B(a + '°')}. Work out angle ${B(ask)}.`, diagram: semiSvg(a, { radii: true, la: a + '°' }), unit: '°', ...nAns(ans, { unit: '°' }), hint: 'OA, OB and OC are radii, so look for isosceles triangles.', steps };
+        }
+        if (v === 2) {
+          let a, b; do { a = r.int(20, 100); b = r.int(20, 100); } while (a + b > 165);
+          return { html: `${r.pick(['Jo', 'Kai', 'Nia', 'Ruby'])} conjectures that an exterior angle of a triangle equals the sum of the two interior angles opposite it. Test it: a triangle has interior angles ${a}° and ${b}°. Work out the exterior angle at the third vertex.`, unit: '°', ...nAns(a + b, { unit: '°' }), hint: 'Find the third angle, then use angles on a straight line.',
+            steps: [`Third angle = 180° − ${a}° − ${b}° = ${180 - a - b}°`, `Exterior angle = 180° − ${180 - a - b}° = ${B(a + b + '°')}`, `${a}° + ${b}° = ${a + b}°, so this example supports the conjecture.`] };
+        }
+        if (v === 3) {
+          let a, b, c; do { a = r.int(50, 150); b = r.int(50, 150); c = r.int(50, 150); } while (360 - a - b - c < 30 || 360 - a - b - c > 175);
+          return { html: `To test the conjecture “the angles in any quadrilateral add up to 360°”, a pupil draws a quadrilateral and measures three angles: ${a}°, ${b}° and ${c}°. If the conjecture is true, what should the fourth angle measure?`, unit: '°', ...nAns(360 - a - b - c, { unit: '°' }), hint: 'Subtract the three angles from 360°.',
+            steps: [`${a}° + ${b}° + ${c}° = ${a + b + c}°`, `Fourth angle = 360° − ${a + b + c}° = ${B(360 - a - b - c + '°')}`, 'A diagonal splits any quadrilateral into two triangles: 2 × 180° = 360°, which proves it.'] };
+        }
+        const Q = [
+          [`A conjecture about angles has been tested on ${r.pick([10, 25, 50, 100])} different diagrams and worked every time. Which statement is correct?`, 'It is supported, but it is not proved until there is a general proof', ['It is proved to be always true', 'It is false', 'It needs one more example to be proved'], 'Examples can only support a conjecture; a proof using facts covers every case.'],
+          [`How many counterexamples are needed to show a conjecture is false?`, 'One', ['Two', 'Ten', 'It can never be shown to be false'], 'A single case where it fails shows it is not always true.'],
+          [`${r.pick(['Ali', 'Beth', 'Cara'])} says: “If two angles add up to 180°, they must be co-interior angles.” Which shows this is false?`, 'Two angles next to each other on a straight line', ['Two co-interior angles on parallel lines', 'Two right angles inside a C shape', 'Two angles inside a C shape on parallel lines'], 'Angles on a straight line add up to 180° but are not co-interior.'],
+          [`${r.pick(['Dev', 'Ella', 'Finn'])} says: “Every triangle has at least two acute angles.” Is this always, sometimes or never true?`, 'Always true', ['Sometimes true', 'Never true', 'Only for isosceles triangles'], 'Two angles of 90° or more would already add up to at least 180°, so at most one angle can be 90° or more.'],
+        ];
+        const [q, good, bads, why] = r.pick(Q);
+        return { html: q, ...mcq(r, [good, ...bads], 0), hint: 'Think about what examples can and cannot show.', steps: [why, `Answer: ${B(good)}`] };
+      }],
+    ['Quadrilateral properties',
+      'Know the facts: squares and rhombuses have four equal sides; squares and rectangles have four right angles; parallelograms (including rhombuses, rectangles and squares) have two pairs of parallel sides; a trapezium has exactly one pair; a kite has two pairs of equal neighbouring sides and no parallel sides.',
+      (r) => {
+        const shapes = Object.keys(QP);
+        if (r.chance(0.55)) {
+          let t, props; for (;;) { t = r.pick(shapes); props = r.sample(QP[t], Math.min(QP[t].length, r.int(2, 3))); const fits = shapes.filter((s) => props.every((p) => QP[s].includes(p))); if (fits.length === 1) break; }
+          const dist = r.sample(shapes.filter((s) => s !== t), 3);
+          return { html: `${r.pick(['A quadrilateral has all of these properties:', 'Every shape of one type of quadrilateral has these properties:', 'A quadrilateral is described by these properties:'])} ${props.join('; ')}. Which quadrilateral is it?`, ...mcq(r, [t, ...dist], 0), hint: 'Check each property against each shape.',
+            steps: [...dist.map((s) => `${an(s).replace(/^a/, 'A')} does not always have: ${props.find((p) => !QP[s].includes(p))}.`), `Only the ${B(t)} has all of them.`].slice(-4) };
+        }
+        let t, good, bads; do { t = r.pick(shapes.filter((s) => s !== 'trapezium')); good = r.pick(QP[t]); bads = r.sample(ALLP.filter((p) => !QP[t].includes(p) && !(t === 'square' && p === 'rotational symmetry of order 2')), 3); } while (bads.length < 3);
+        return { html: `${r.pick(['Which statement is true for every', 'Which of these is a property of every', 'Choose the statement that is always true for every'])} ${B(t)}?`, ...mcq(r, [good, ...bads], 0), hint: `Picture a ${t} and check each statement.`,
+          steps: [`Properties of ${an(t)}: ${QP[t].join('; ')}.`, `So the true statement is: ${B(good)}.`] };
       }],
   ]);
 };

@@ -65,6 +65,13 @@ ${note('You can check a rearrangement by substituting numbers into the original 
 ${W('Find the gradient and y-intercept of 2y − 6x = 9.', ['Add 6x to both sides: 2y = 6x + 9', 'Divide every term by 2: y = 3x + 4.5'], 'gradient 3, y-intercept 4.5')}
 ${W('Find the gradient of 4x + 3y = 12.', ['Subtract 4x: 3y = −4x + 12', 'Divide by 3: y = −' + f(4, 3) + 'x + 4'], 'gradient −' + f(4, 3))}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('Make a the subject of p = a − q.', ['Think of it as a function machine: a → −q → p.', 'Undo it: p → +q → a.'], 'a = p + q')}
+${W('Solve 5x + 2 = 17, then make x the subject of 5x + k = m.', ['Subtract 2: 5x = 15, then divide by 5: x = 3.', 'Same steps with letters: subtract k: 5x = m − k.', 'Divide by 5.'], 'x = 3; x = ' + f('m − k', '5'))}
+${W('Make x the subject of xt + r = b.', ['Subtract r: xt = b − r', 'Divide by t.'], 'x = ' + f('b − r', 't'))}
+${W('Find the gradient of the line 3y − 6x = 12.', ['Make y the subject: 3y = 6x + 12', 'Divide by 3: y = 2x + 4'], 'gradient 2')}`,
+    },
   ],
   mistakes: [
     'Writing −4² instead of (−4)² when substituting a negative value.',
@@ -132,6 +139,20 @@ ${W('Is (x + 3)² ≡ x² + 9?', ['Try x = 1: left side 16, right side 10 — di
 ${table(['', '', ''], [['n − 11', 'n − 10', 'n − 9'], ['n − 1', '<b>n</b>', 'n + 1'], ['n + 9', 'n + 10', 'n + 11']])}
 ${W('Show that for any 2 × 2 square on a 100 square, top-right × bottom-left − top-left × bottom-right is always 10.', ['Corners: n, n + 1, n + 10, n + 11', '(n + 1)(n + 10) = n² + 11n + 10', 'n(n + 11) = n² + 11n', 'Subtract.'], '10, whatever n is')}
 ${note('On a grid with w numbers in each row, the number below n is n + w instead of n + 10.')}`,
+    },
+    {
+      title: 'Factors, multiples and primes',
+      html: `${W('Find the HCF of 24 and 40.', ['Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24', 'Factors of 40: 1, 2, 4, 5, 8, 10, 20, 40', 'Common factors: 1, 2, 4, 8'], 'HCF = 8')}
+${W('Find the LCM of 6 and 8.', ['Multiples of 6: 6, 12, 18, 24, 30', 'Multiples of 8: 8, 16, 24, 32'], 'LCM = 24')}
+${W('Write 60 as a product of prime factors.', ['Factor tree: 60 = 6 × 10', '6 = 2 × 3 and 10 = 2 × 5'], '60 = 2² × 3 × 5')}
+${note('HCF × LCM = the product of the two numbers: for 6 and 8, 2 × 24 = 48 = 6 × 8.')}`,
+    },
+    {
+      title: 'School-style worked examples',
+      html: `${W('A sequence starts 3, 6, 12 … Sam says “it doubles each time”. The next terms are 21 and 33. Is Sam right?', ['12 × 2 = 24, but the next term is 21.', 'The differences are 3, 6, 9, 12 — the sequence adds 3 more each time.'], 'No — 21 is a counterexample')}
+${W('Always, sometimes or never: “a number multiplied by itself is bigger than the number”?', ['Try 5: 25 &gt; 5 ✓', 'Try 1: 1 = 1 ✗; try 0.5: 0.25 ✗'], 'Sometimes true')}
+${W('Show that the sum of two consecutive odd numbers is a multiple of 4.', ['Call them 2n + 1 and 2n + 3.', 'Sum = 4n + 4 = 4(n + 1).'], '4 × a whole number, so always a multiple of 4')}
+${W('On a 100 square, the number n is circled. Write expressions for the numbers immediately left of it and directly below it.', ['Left: one less → n − 1', 'Below: one row of 10 more → n + 10'], 'n − 1 and n + 10')}`,
     },
   ],
   mistakes: [
@@ -206,6 +227,13 @@ ${W('Show −2 &lt; x ≤ 3 on a number line and list the integers.', ['Open cir
 ${W('Describe the region for y ≥ 2x + 1.', ['Boundary y = 2x + 1, drawn solid (≥).', 'Test (0, 0): 0 ≥ 1 is false, so (0, 0) is not in the region.'], 'shade the side above the line, not containing (0, 0)')}
 ${note('x &lt; 4 is the region to the left of the vertical dashed line x = 4.')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('Complete a table of values for y = x² − 2x − 3 for x = −2 to 4 and give the coordinates to plot.', ['x = −2: 4 + 4 − 3 = 5; x = −1: 1 + 2 − 3 = 0; x = 0: −3', 'x = 1: −4; x = 2: −3; x = 3: 0; x = 4: 5', 'Pairs: (−2, 5), (−1, 0), (0, −3), (1, −4), (2, −3), (3, 0), (4, 5)'], 'roots −1 and 3, y-intercept −3, turning point (1, −4)')}
+${W('Which type of graph is y = 3/x? Can x = 0?', ['x is in the denominator, so it is a reciprocal graph.', 'Dividing by 0 is impossible, so the graph never touches the y-axis.'], 'reciprocal; no, x = 0 is an asymptote')}
+${W('Find y on y = 3ˣ when x = −1, 0 and 2.', ['3⁻¹ = ' + f(1, 3), '3⁰ = 1', '3² = 9'], f(1, 3) + ', 1 and 9')}
+${W('Describe how to show y &lt; x + 2 and x ≥ −1 on a graph.', ['Draw y = x + 2 dashed (strict &lt;) and shade below it — test (0, 0): 0 &lt; 2 ✓.', 'Draw x = −1 solid (≥) and keep the side to its right.'], 'the overlapping region below the dashed line and right of the solid line')}`,
+    },
   ],
   mistakes: [
     'Squaring a negative incorrectly, e.g. writing (−3)² = −9.',
@@ -220,6 +248,51 @@ ${note('x &lt; 4 is the region to the left of the vertical dashed line x = 4.')}
   ],
   realLife: 'The path of a thrown ball is a parabola, exponential graphs model population growth and savings interest, and shaded regions are used in business to show combinations of products that meet several limits at once.',
   specRef: 'Edexcel 1MA1 A11, A12, A22',
+};
+
+// Extra sections appended to existing Year 9 pages (mirroring the school knowledge organisers).
+C.__extraSections = {
+  'y9-straight-line-graphs': [
+    {
+      title: 'Lines parallel to the axes and real-life graphs',
+      html: `${rule('x = a is a vertical line (parallel to the y-axis) &nbsp;&nbsp; y = b is a horizontal line (parallel to the x-axis)')}
+<p>Every point on x = −4 has x-coordinate −4, e.g. (−4, 0), (−4, 3), (−4, −7). The lines x = a and y = b cross at (a, b).</p>
+${table(['Feature of y = mx + c', 'Meaning in a real-life graph'], [['y-intercept c', 'The fixed or starting amount (e.g. a call-out charge)'], ['Gradient m', 'The rate (e.g. cost per hour)'], ['Line through (0, 0)', 'Direct proportion: zero items cost £0']])}
+${note('Steeper means a bigger gradient (ignoring the sign). Parallel lines have equal gradients; lines with the same c cross the y-axis at the same point (0, c).')}`,
+    },
+    {
+      title: 'School-style worked examples',
+      html: `${W('Complete the table for y = 2x + 3 with x = −2, 0, 2.', ['x = −2: 2 × (−2) + 3 = −1', 'x = 0: 3', 'x = 2: 7'], 'coordinates (−2, −1), (0, 3), (2, 7)')}
+${W('An electrician charges a £30 call-out fee plus £15 per hour. Complete the costs for 0, 1, 2 and 6 hours and say what the intercept and gradient mean.', ['0 h: £30; 1 h: £45; 2 h: £60', '6 h: 30 + 15 × 6 = £120', 'Intercept 30 = call-out fee; gradient 15 = cost per hour'], 'C = 15h + 30')}
+${W('A box of pencils costs £1.80. Find the cost of 0, 1, 2 and 5 boxes.', ['0 boxes cost £0, so the graph starts at the origin.', '1: £1.80; 2: £3.60; 5: £9.00'], 'direct proportion, gradient £1.80 per box')}
+${W('A line crosses the y-axis at (0, −2) and rises 6 squares for every 2 across. Find its equation.', ['c = −2', 'Gradient = 6 ÷ 2 = 3'], 'y = 3x − 2')}`,
+    },
+  ],
+  'y9-equations-both-sides': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('Solve 4(3x − 2) = 40.', ['Expand: 12x − 8 = 40 (a bar model shows four equal parts of 3x − 2).', 'Add 8: 12x = 48', 'Divide by 12.'], 'x = 4')}
+${W('Solve 6x + 3 = 2x + 23.', ['Subtract 2x from both sides: 4x + 3 = 23', 'Subtract 3: 4x = 20', 'Divide by 4.'], 'x = 5')}
+${W('Check your answer to 6x + 3 = 2x + 23.', ['Left: 6 × 5 + 3 = 33', 'Right: 2 × 5 + 23 = 33'], 'both sides equal, so x = 5 is correct')}`,
+    },
+  ],
+  'y9-inequalities': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('“Three more than double my number is less than 15.” Find the possible numbers.', ['Form: 2x + 3 &lt; 15', 'Subtract 3: 2x &lt; 12', 'Divide by 2.'], 'x &lt; 6')}
+${W('Solve 4 − 2x &gt; 10 (method 1: keep x positive).', ['Add 2x: 4 &gt; 10 + 2x', 'Subtract 10: −6 &gt; 2x', 'Divide by 2: −3 &gt; x'], 'x &lt; −3')}
+${W('Solve 4 − 2x &gt; 10 (method 2: divide by a negative).', ['Subtract 4: −2x &gt; 6', 'Divide by −2 and reverse the sign.'], 'x &lt; −3 — the same answer')}
+${W('Solve 4(x + 3) &gt; 2(x + 9) and check.', ['Expand: 4x + 12 &gt; 2x + 18', 'Subtract 2x: 2x + 12 &gt; 18; subtract 12: 2x &gt; 6', 'Divide by 2: x &gt; 3. Check x = 4: 28 &gt; 26 ✓'], 'x &gt; 3')}`,
+    },
+  ],
+  'y9-expanding-double': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('Expand 3(x + 4) using algebra tiles.', ['Three rows, each made of one x tile and four unit tiles.', 'Total: three x tiles and twelve unit tiles.'], '3(x + 4) ≡ 3x + 12')}
+${W('Expand (x + 4)(x + 4).', ['Grid: x × x = x², x × 4 = 4x, 4 × x = 4x, 4 × 4 = 16', 'Four terms: x² + 4x + 4x + 16', 'Collect like terms.'], 'x² + 8x + 16')}
+${W('Expand (x + 2)(5 + x). Does the order matter?', ['x × 5 = 5x, x × x = x², 2 × 5 = 10, 2 × x = 2x', 'Collect: x² + 7x + 10'], 'x² + 7x + 10 — the same as (x + 2)(x + 5)')}`,
+    },
+  ],
 };
 
 module.exports = C;

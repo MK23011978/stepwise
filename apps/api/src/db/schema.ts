@@ -418,6 +418,7 @@ export const items = pgTable('items', {
 export const learnPages = pgTable('learn_pages', {
   topicId: text('topic_id').primaryKey().references(() => topics.id, { onDelete: 'cascade' }),
   content: jsonb('content').notNull(),
+  edited: boolean('edited').notNull().default(false), // true once an admin edits it — start-up sync then leaves it alone
   updatedAt: ts('updated_at').notNull().defaultNow(),
 });
 

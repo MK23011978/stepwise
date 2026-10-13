@@ -64,6 +64,14 @@ ${W(`Work out 2${f(1, 3)} + 1${f(3, 4)}.`, [`Improper fractions: ${f(7, 3)} + ${
 ${W(`Work out 1${f(1, 2)} ÷ ${f(3, 5)}.`, [`1${f(1, 2)} = ${f(3, 2)}.`, `Reciprocal of ${f(3, 5)} is ${f(5, 3)}: ${f(3, 2)} × ${f(5, 3)} = ${f(15, 6)}.`, `Simplify: ${f(15, 6)} = ${f(5, 2)} = 2${f(1, 2)}.`], `2${f(1, 2)}`)}
 ${note(`You can picture ${f(3, 4)} × ${f(2, 3)} as a rectangle split into 4 columns and 3 rows: shading 3 columns and 2 of the rows overlaps on 6 of the 12 parts, so the answer is ${f(6, 12)} = ${f(1, 2)}.`)}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('Find the HCF of 24 and 36 by listing factors.', ['Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24.', 'Factors of 36: 1, 2, 3, 4, 6, 9, 12, 18, 36.', 'The biggest number in both lists is 12.'], 'HCF = 12')}
+${W('Find the LCM of 6 and 8 by listing multiples.', ['Multiples of 6: 6, 12, 18, 24, 30, …', 'Multiples of 8: 8, 16, 24, 32, …', 'The first time the lists match is 24.'], 'LCM = 24')}
+${W('Work out 3 + (−5), then find 3<i>a</i> − <i>b</i> when <i>a</i> = 4 and <i>b</i> = −2.', ['With counters: 3 positives and 5 negatives make 3 zero pairs, leaving 2 negatives, so 3 + (−5) = −2.', 'Substitute with brackets: 3 × 4 − (−2) = 12 + 2.'], '−2 and 14')}
+${W(`Work out ${f(2, 5)} × ${f(3, 4)}, then ${f(3, 5)} ÷ ${f(2, 3)}.`, [`Area model: a rectangle with 4 columns and 5 rows has 20 parts; shading 3 columns and 2 rows overlaps on 6 parts, so the product is ${f(6, 20)} = ${f(3, 10)}.`, `Divide by multiplying by the reciprocal: ${f(3, 5)} × ${f(3, 2)} = ${f(9, 10)}.`], `${f(3, 10)} and ${f(9, 10)}`)}
+${note('A square root of a negative number, such as √(−9), is not a real number: every real number squared is zero or positive.')}`,
+    },
   ],
   mistakes: [
     'Thinking every decimal is irrational — terminating and recurring decimals are rational.',
@@ -137,6 +145,14 @@ ${W('£1 = $1.30. Change £250 into dollars, and $91 into pounds.', ['£250 × 1
 <p>To compare value, find the <b>cost of one unit</b>: 4 oranges for £1 is 25p each, 5 cupcakes for £1.20 is 24p each.</p>
 ${note('Estimate first: if £1 is about $1.30, then $91 must be a bit less than £91 — a quick check that you divided rather than multiplied.')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('A café bill shows 3 teas at 95p each and a cake at £2.40. What is the total?', ['Change everything to pounds: 95p = £0.95.', '3 × £0.95 = £2.85.', '£2.85 + £2.40.'], '£5.25')}
+${W('£200 is invested for 3 years at 4% per year. Find the total with simple interest and with compound interest.', ['Simple: 200 × 4 × 3 ÷ 100 = £24 interest, so £224.', 'Compound: 200 × 1.04<sup>3</sup> = 224.9728 → £224.97.'], '£224 (simple), £224.97 (compound)')}
+${W('£1 = $1.25. Convert £40 and then £400 into dollars.', ['£40 × 1.25 = $50.', '£400 is 10 times as much, so $50 × 10 = $500.'], '$50 and $500')}
+${W('3 apples cost 90p; 5 apples cost £1.40. Which is better value?', ['3 apples: 90 ÷ 3 = 30p each.', '5 apples: 140 ÷ 5 = 28p each.'], 'The 5 apples (cheaper per apple)')}
+${note('A deposit is a first payment that secures an item; on a payment plan add the deposit to all the instalments to find the total cost.')}`,
+    },
   ],
   mistakes: [
     'Using simple interest when the question says compound (or the other way round).',
@@ -203,6 +219,13 @@ ${note('Ask yourself: if one quantity goes up, does the other go up (direct) or 
       html: `${W('Shop A: 4 cans for £1.20. Shop B: 3 cans for 93p. Which is better value?', ['Shop A: £1.20 ÷ 4 = 30p per can.', 'Shop B: 93p ÷ 3 = 31p per can.'], 'Shop A (cheaper per can)')}
 ${note('You can also compare how much you get per £1 — then the bigger amount is the better value. Make sure you know which you have worked out.')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('Ali and Ben share £360 in the ratio 4 : 5. How much does each get?', ['Model it with 9 equal boxes: 4 for Ali, 5 for Ben.', 'One box: £360 ÷ 9 = £40.', 'Ali: 4 × £40 = £160; Ben: 5 × £40 = £200.'], 'Ali £160, Ben £200')}
+${W('Green and yellow counters are in the ratio 4 : 1. There are 8 yellow counters. How many green?', ['Yellow is the 1 part, so one part = 8.', 'Green = 4 parts = 4 × 8.'], '32 green counters')}
+${W('<i>P</i> is inversely proportional to <i>Q</i>. When <i>Q</i> = 24, <i>P</i> = 3. Find <i>Q</i> when <i>P</i> = 6.', ['<i>P</i> has been multiplied by 2…', '…so <i>Q</i> is divided by 2: 24 ÷ 2.'], '<i>Q</i> = 12')}
+${W('Shop A: 6 bottles for £2.40. Shop B: 4 bottles for £1.80. Compare per bottle and per pound.', ['Per bottle: A = 40p, B = 45p.', 'Per £1: A = 6 ÷ 2.40 = 2.5 bottles, B = 4 ÷ 1.80 = 2.22 bottles.'], 'Shop A is better value either way')}`,
+    },
   ],
   mistakes: [
     'Dividing the total by one part of the ratio instead of the total number of shares.',
@@ -218,6 +241,42 @@ ${note('You can also compare how much you get per £1 — then the bigger amount
   ],
   realLife: 'Ratios are used in recipes, mixing concrete and paint, and map scales; inverse proportion helps plan how many people or machines a job needs; best buys save money at the supermarket.',
   specRef: 'Edexcel 1MA1 R5, R6, R10, R14',
+};
+
+C.__extraSections = {
+  'y9-standard-form': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('Work out 7 × 10<sup>4</sup> + 5 × 10<sup>4</sup>.', ['The powers match, so add the front numbers: 7 + 5 = 12.', '12 × 10<sup>4</sup> is not standard form: 12 = 1.2 × 10.', 'So 1.2 × 10 × 10<sup>4</sup> = 1.2 × 10<sup>5</sup>.'], '1.2 × 10<sup>5</sup>')}
+${W('Work out (2.4 × 10<sup>6</sup>) ÷ (0.6 × 10<sup>2</sup>).', ['Front numbers: 2.4 ÷ 0.6 = 24 ÷ 6 = 4.', 'Powers: 10<sup>6</sup> ÷ 10<sup>2</sup> = 10<sup>4</sup>.'], '4 × 10<sup>4</sup>')}
+${W('Write 0.35 × 10<sup>−2</sup> in standard form.', ['0.35 = 3.5 × 10<sup>−1</sup>.', '3.5 × 10<sup>−1</sup> × 10<sup>−2</sup> = 3.5 × 10<sup>−3</sup>.'], '3.5 × 10<sup>−3</sup>')}
+${note('Always check the front number is at least 1 and less than 10 — if not, adjust it and change the power to compensate.')}`,
+    },
+  ],
+  'y9-percentage-change': [
+    {
+      title: 'Fractions, decimals and percentages',
+      html: `<p>A percentage is a number of hundredths. A 10 × 10 grid makes the link clear: 45 shaded squares out of 100 is ${f(45, 100)} = 0.45 = 45%.</p>
+${table(['Fraction', 'Decimal', 'Percentage'], [[f(1, 4), '0.25', '25%'], [f(3, 5), '0.6', '60%'], [f(1, 8), '0.125', '12.5%'], [f(2, 3), '0.666…', '66.7% (1 d.p.)']])}
+${rule('Decimal → % : × 100 &nbsp;&nbsp; % → decimal : ÷ 100 &nbsp;&nbsp; Fraction → decimal : numerator ÷ denominator')}
+${note('Some fractions give recurring decimals: 1/3 = 0.333… — the digits repeat for ever, so 0.33 is only an approximation.')}`,
+    },
+    {
+      title: 'School-style worked examples',
+      html: `${W('30% of a number is 21. What is the number?', ['30% = 21, so 10% = 21 ÷ 3 = 7.', '100% = 7 × 10.'], '70')}
+${W('After a rise, 130% of the original amount is 91. Find the original.', ['130% = 91, so 10% = 91 ÷ 13 = 7.', '100% = 7 × 10.'], '70')}
+${W('A scooter bought for £160 is sold for £100. Find the percentage loss.', ['Loss = £160 − £100 = £60.', 'Compare with the ORIGINAL price: 60 ÷ 160 × 100.'], '37.5% loss')}
+${W('Write the multipliers for a 35% decrease and an 8% increase.', ['Decrease: 100% − 35% = 65% → 0.65 (less than 1).', 'Increase: 100% + 8% = 108% → 1.08 (more than 1).'], '0.65 and 1.08')}`,
+    },
+  ],
+  'y9-direct-proportion': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('6 cans of drink cost £3.60. Find the cost of 3 cans, 18 cans and 1 can.', ['3 cans: half as many, so × 0.5 → £1.80.', '18 cans: three times as many, so × 3 → £10.80.', '1 can: £3.60 ÷ 6 = 60p (often the easiest place to start).'], '£1.80, £10.80, 60p')}
+${W('Shop A: 5 cans for £1.50. Shop B: 4 cans for £1.32. Which is the best buy?', ['Cost per can: A = 150 ÷ 5 = 30p, B = 132 ÷ 4 = 33p.', 'Cans per £1: A = 5 ÷ 1.50 = 3.33, B = 4 ÷ 1.32 = 3.03.'], 'Shop A — it is cheaper per can and gives more per pound')}
+${note('Both quantities change by the same multiplier in direct proportion: whatever you do to the number of items, do the same to the cost.')}`,
+    },
+  ],
 };
 
 module.exports = C;

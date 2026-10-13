@@ -9,7 +9,7 @@ let bad = 0;
 const fail = (m) => { bad++; console.log('  ✗ ' + m); };
 for (const t of M.TOPICS.filter((x) => re.test(x.id))) {
   console.log(`${t.id} — ${t.name} (Y${t.year} T${t.term}, ${t.styles.length} styles)`);
-  if (t.styles.length < 3 || t.styles.length > 6) fail(`${t.id}: needs 3–6 styles`);
+  if (t.styles.length < 3 || t.styles.length > 8) fail(`${t.id}: needs 3–8 styles`);
   if (!t.specRef) fail(`${t.id}: missing SPEC entry`);
   const L = LEARN[t.id];
   if (!L) fail(`${t.id}: missing learn page`);

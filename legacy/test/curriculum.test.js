@@ -24,7 +24,7 @@ for (const t of TOPICS) {
   ok([1, 2, 3].includes(t.term), `topic ${t.id} term`);
   ok(['F', 'H', 'FH'].includes(t.tier), `topic ${t.id} tier`);
   if (!ONLY || t.styles.some((s) => ONLY.test(s))) {
-    ok(t.styles.length >= 3 && t.styles.length <= 6, `topic ${t.id} has 3-6 styles`);
+    ok(t.styles.length >= 3 && t.styles.length <= 8, `topic ${t.id} has 3-8 styles`);
     ok(typeof t.specRef === 'string' && t.specRef.length > 0, `topic ${t.id} has specRef`);
   }
   ok(t.id.startsWith(`y${t.year}-`), `topic ${t.id} id prefix`);

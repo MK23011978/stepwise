@@ -70,6 +70,13 @@ ${rule('Surface area of a closed cylinder = 2πr² + πdh &nbsp; (curved surface
 ${W('A closed cylinder has radius 3 cm and height 10 cm. Find its surface area in terms of π.', ['Two circles: 2 × π × 3² = 18π.', 'Curved surface: π × 6 × 10 = 60π.', 'Total: 18π + 60π = 78π.'], '78π cm² (≈ 245.0 cm²)')}
 ${note('“In terms of π” means leave π in the answer, like 78π — do not multiply it out.')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('A closed box is a cuboid 9 m long, 5 m wide and 4 m high. Find its surface area by listing the pairs of faces.', ['Two sides: 5 × 4 = 20 m² each.', 'Front and back: 9 × 4 = 36 m² each.', 'Top and bottom: 9 × 5 = 45 m² each.', 'Total: 2 × (20 + 36 + 45) = 2 × 101 = 202 m².'], '202 m²')}
+${W('A cylinder has radius 4 cm and height 9 cm. Use 2 × π × radius² + π × diameter × height to find its surface area in terms of π.', ['Two circles: 2 × π × 4² = 32π.', 'The rectangle is as long as the circumference: π × 8 × 9 = 72π.', 'Total: 32π + 72π.'], '104π cm²')}
+${W('The net of a cuboid 5 cm by 2 cm by 3 cm is drawn on centimetre squared paper. How many squares does it cover?', ['The net has three pairs of rectangles: 5 × 2, 5 × 3 and 2 × 3.', 'Areas: 10, 15 and 6, each twice.', '2 × (10 + 15 + 6) = 62.'], '62 squares (62 cm²)')}
+${W('A cylindrical tin stands upright. Describe its plan and front elevation.', ['From above you see the circular lid: the plan is a circle.', 'From the front you see a rectangle as wide as the diameter and as tall as the tin.'], 'Plan: circle. Front elevation: rectangle')}`,
+    },
   ],
   mistakes: [
     'Mixing up edges and vertices, or counting hidden edges twice.',
@@ -136,6 +143,13 @@ ${table(['Condition', 'What must be equal'], [['SSS', 'all three sides'], ['SAS'
 ${note('AAA is not enough — an enlargement has the same angles but is bigger. SSA (an angle that is not between the two sides) is not enough either, because the third side can swing to two positions.')}
 ${W('Triangle ABC is congruent to triangle PQR. AB = 7 cm, BC = 9 cm and angle ABC = 48°. Find QR and angle PQR.', ['Match letters in order: A ↔ P, B ↔ Q, C ↔ R.', 'QR matches BC, so QR = 9 cm.', 'Angle PQR matches angle ABC, so it is 48°.'], 'QR = 9 cm, angle PQR = 48°')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('A model boat is made to a scale of 1 : 40. The model is 12 cm long. How long is the real boat?', ['Every 1 cm on the model is 40 cm in real life.', '12 × 40 = 480 cm.', '480 cm ÷ 100 = 4.8 m.'], '4.8 m')}
+${W('A lamp is fixed in the corner of a rectangular yard. It lights everything up to 3 m away. Describe the lit region.', ['All points 3 m from a point lie on a circle of radius 3 m.', 'The walls block everything outside the yard, so only a quarter of the circle is inside.'], 'A quarter circle of radius 3 m centred on the corner')}
+${W('In triangle ABC, angle A = 70°, angle B = 58° and AB = 6 cm. In triangle KLM, angle K = 70°, angle L = 58° and KL = 6 cm. Are they congruent? Find angle M.', ['Two angles and the side between them match, so the triangles are congruent (ASA).', 'Angle C = 180 − 70 − 58 = 52°, and angle M matches angle C.'], 'Congruent (ASA); angle M = 52°')}
+${W('A protractor is lined up with 0 on the right-hand arm of an angle. The other arm passes 35 on the inner scale and 145 on the outer scale. The angle is clearly acute. What is it?', ['Use the scale that starts at 0 on the starting arm: the inner scale.', 'It reads 35°, which is acute ✓.'], '35°')}`,
+    },
   ],
   mistakes: [
     'Forgetting to convert units (cm to m or km) when using a map scale.',
@@ -200,6 +214,14 @@ ${W('Alternate angles are (5x − 12)° and (3x + 30)°. Find the size of each a
 <p>A <b>conjecture</b> can be <b>always</b>, <b>sometimes</b> or <b>never</b> true. Testing lots of cases supports a conjecture, but only a proof shows it is always true. One <b>counterexample</b> is enough to show it is false.</p>
 ${W('Is “a quadrilateral with four equal sides is a square” true?', ['Look for a shape with four equal sides that is not a square.', 'A rhombus with angles 60° and 120° has four equal sides but no right angles.'], 'False — a rhombus is a counterexample')}`,
     },
+    {
+      title: 'School-style worked examples',
+      html: `${W('A transversal crosses two parallel lines. An angle of 48° sits between the lines on one side. Find the angle in the Z position on the other side.', ['The two angles are alternate.', 'Alternate angles are equal.'], '48°')}
+${W('A transversal makes an angle of 35° above the top parallel line, on the right. At the bottom crossing, find the angle above the line on the left.', ['Corresponding angles are equal, so the angle above the bottom line on the right is also 35°.', 'Angles on a straight line add up to 180°: 180 − 35 = 145°.'], '145°')}
+${W('Two co-interior angles are 65° and y. Find y.', ['Co-interior angles add up to 180°.', 'y = 180 − 65.'], 'y = 115°')}
+${W('Angles of 3x and 6x lie on a straight line. Find x.', ['Link the fact to algebra: angles on a straight line add up to 180°, so 3x + 6x = 180.', '9x = 180.', 'x = 20 (so the angles are 60° and 120°).'], 'x = 20')}
+${W('Test the conjecture “the angle in a semicircle is 90°” on a triangle with angles 60° and 30° at the ends of the diameter.', ['The third angle is 180 − 60 − 30 = 90°.', 'The example works, but testing examples only supports the conjecture — a proof is needed to show it is always true.'], '90° — the conjecture is supported')}`,
+    },
   ],
   mistakes: [
     'Using parallel-line rules when the lines are not marked as parallel.',
@@ -214,6 +236,27 @@ ${W('Is “a quadrilateral with four equal sides is a square” true?', ['Look f
   ],
   realLife: 'Builders, joiners and road designers use parallel-line angle facts to make roofs, staircases and junctions meet correctly, and reasoning from facts is the basis of every mathematical proof.',
   specRef: 'Edexcel 1MA1 G1, G3, G4, G6',
+};
+
+// Extra teaching sections for existing topics (appended to pages defined in learn-y8-9.cjs)
+C.__extraSections = {
+  'y9-volume-surface-area': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('A solid is built from 1 cm cubes: 5 cubes long, 3 cubes wide and 4 cubes high. Find its volume.', ['One layer has 5 × 3 = 15 cubes.', 'There are 4 layers: 15 × 4 = 60 cubes.'], '60 cm³')}
+${W('A prism has a cross-section of area 18 cm² and is 11 cm long. Find its volume.', ['Volume of a prism = area of cross-section × length (height).', '18 × 11 = 198.'], '198 cm³')}
+${W('A cylinder has radius 3 cm and height 10 cm. Find its volume in terms of π.', ['Cross-section area: π × 3² = 9π cm².', 'Volume = 9π × 10.'], '90π cm³')}
+${note('Volumes are in cube units (cm³, m³) and areas in square units (cm², m²). Leave answers in terms of π if the question asks.')}`,
+    },
+  ],
+  'y9-polygons': [
+    {
+      title: 'School-style worked examples',
+      html: `${W('Find the sum of the interior angles of a heptagon (7 sides).', ['Use (number of sides − 2) × 180.', '(7 − 2) × 180 = 5 × 180.'], '900°')}
+${W('A pentagon has interior angles 100°, 125°, 90° and 110°. Find the fifth angle.', ['Sum of interior angles: (5 − 2) × 180 = 540°.', 'Known angles: 100 + 125 + 90 + 110 = 425°.', '540 − 425 = 115.'], '115°')}
+${W('Each interior angle of a regular polygon is 150°. How many sides does it have?', ['Exterior angle: 180 − 150 = 30°.', 'Exterior angles add up to 360°: 360 ÷ 30 = 12.'], '12 sides')}`,
+    },
+  ],
 };
 
 module.exports = C;

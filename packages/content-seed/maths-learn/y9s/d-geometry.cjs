@@ -290,4 +290,48 @@ ${W('Find P(tails and an even number).', ['Outcomes that work: T2, T4, T6 — 3 
   specRef: 'Edexcel 1MA1 P2, P3, P4, P6, P8',
 };
 
-module.exports = C;
+/* ---------------------------------------------------------------- school-style worked examples */
+const SW = 'School-style worked examples';
+C['y9-transformations'].sections.push({ title: SW, html: `${W('A regular hexagon is turned about its centre using tracing paper. How many times does it fit onto itself in one full turn?', ['Mark the centre and trace the hexagon.', 'Turn the tracing paper through 360°: it fits every 60°.', '360 ÷ 60 = 6.'], 'order of rotational symmetry 6')}
+${W('Shape A is translated by the vector ' + vec('−2', '4') + '. One vertex is at (5, −1). Where is it after the translation?', ['Top number −2: move 2 left, so x = 5 − 2 = 3.', 'Bottom number 4: move 4 up, so y = −1 + 4 = 3.', 'Every other vertex moves by the same amount.'], '(3, 3)')}
+${W('A triangle with vertices (2, 1), (4, 1) and (2, 2) is rotated 90° anticlockwise about the point (1, 1), which is outside the shape. Find the image of (4, 1).', ['From the centre: (4, 1) is 3 right, 0 up → (3, 0).', 'A quarter turn anticlockwise sends (3, 0) to (0, 3).', 'Add back to the centre: (1 + 0, 1 + 3).'], '(1, 4)')}
+${W('Shape B is a flipped copy of shape A on the other side of the line x = 2. Describe the transformation fully, and say what you would need instead if B were a rotation.', ['Flipped over means a reflection; the mirror line is x = 2.', 'A rotation would need a centre, an angle and a direction.'], 'reflection in the line x = 2')}` });
+
+C['y9-enlargement'].sections.push({ title: SW, html: `${W('A 2 × 3 grid rectangle and a 6 × 9 grid rectangle are drawn. Are they similar?', ['6 ÷ 2 = 3 and 9 ÷ 3 = 3.', 'Every pair of sides is in the same ratio.'], 'yes — an enlargement with scale factor 3')}
+${W('A rectangle is 15 cm by 10 cm. It is enlarged by scale factor ' + f(1, 5) + '. Find the new dimensions.', ['15 × ' + f(1, 5) + ' = 15 ÷ 5 = 3 cm.', '10 × ' + f(1, 5) + ' = 10 ÷ 5 = 2 cm.'], '3 cm by 2 cm (smaller, because the scale factor is less than 1)')}
+${W('Two similar trapeziums: the small one has a base of 5 cm, a slanted side of 3 cm and an angle of 115°. The large one has a base of 15 cm. Find the matching slanted side and angle.', ['Scale factor = 15 ÷ 5 = 3.', 'Slanted side = 3 × 3 = 9 cm.', 'Angles do not change in an enlargement.'], '9 cm and 115°')}
+${W('Enlarge the vertex (5, 4) by scale factor 3 from the centre (3, 3).', ['Scaled distances: from the centre the vertex is 2 right, 1 up.', 'Multiply by 3: 6 right, 3 up.', 'From the centre: (3 + 6, 3 + 3). (A ray from the centre through the vertex passes through this point.)'], '(9, 6)')}` });
+
+C['y9-rates-graphs'].sections.push({ title: SW, html: `${W('A distance–time graph rises from (0 min, 0 m) to (10 min, 600 m), is flat until 25 minutes, then falls back to 0 m at 40 minutes. Describe the journey.', ['First 10 minutes: 600 ÷ 10 = 60 metres per minute.', '10 to 25 minutes: horizontal, so stationary for 15 minutes.', 'Return: 600 m in 15 minutes = 40 metres per minute.'], '60 m/min out, a 15-minute stop, 40 m/min home')}
+${W('A cylindrical jug and a cone-shaped glass (point at the bottom) are filled at the same constant rate. Describe each depth–time graph.', ['Cylinder: same width all the way up, so the depth rises steadily — a straight line.', 'Cone: gets wider higher up, so the depth rises more slowly over time — a curve that gets less steep.'], 'straight line; curve that flattens')}
+${W('Water flows at 12 litres per minute. Write this in millilitres per second.', ['12 litres = 12 000 ml per minute.', '12 000 ÷ 60 = 200.'], '200 ml per second')}
+${W('A conversion graph passes through (0, 0) and (50, 60) with pounds across and euros up. What does the gradient mean?', ['Gradient = 60 ÷ 50 = 1.2.', 'Units: euros per pound.'], '£1 buys €1.20 — the exchange rate')}` });
+
+C['y9-probability-diagrams'].sections.push({ title: SW, html: `${W('A bag has 3 green and 7 yellow beads. Mark P(green) on a probability scale split into 10 equal parts.', ['P(green) = ' + f(3, 10) + '.', 'Each part is ' + f(1, 10) + ', so mark the 3rd division.', 'P(not green) = 1 − ' + f(3, 10) + ' = ' + f(7, 10) + '.'], f(3, 10) + ' — unlikely, nearer 0 than 1')}
+${table(['Flavour', 'Mint', 'Orange', 'Lemon'], [['Probability', '0.2', '0.45', '?']])}
+${W('Using the table above, find P(lemon) and the expected number of lemons in 300 picks.', ['0.2 + 0.45 = 0.65, so P(lemon) = 1 − 0.65 = 0.35.', 'Expected = 0.35 × 300 = 105.'], '0.35; about 105')}
+${W('A fair dice is rolled and a spinner with 3 equal sections (red, blue, white) is spun. Find P(4 and blue).', ['The events are independent.', 'P(4) = ' + f(1, 6) + ', P(blue) = ' + f(1, 3) + '.', f(1, 6) + ' × ' + f(1, 3) + ' = ' + f(1, 18) + '.'], f(1, 18))}` });
+
+const __extraSections = {
+  'y9-pythagoras': [{ title: SW, html: `${table(['n', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], [['n²', '1', '4', '9', '16', '25', '36', '49', '64', '81', '100', '121', '144']])}
+<p>√ undoes squaring (√81 = 9) and ∛ undoes cubing (∛125 = 5). The hypotenuse is the longest side, opposite the right angle.</p>
+${W('Is a triangle with sides 7 cm, 24 cm and 25 cm right-angled?', ['Shorter sides: 7² + 24² = 49 + 576 = 625.', 'Longest side: 25² = 625.', 'They are equal.'], 'yes, it is right-angled')}
+${W('The two shorter sides of a right-angled triangle are 4 cm and 7 cm. Find the hypotenuse.', ['4² + 7² = hypotenuse²', '16 + 49 = 65', 'hypotenuse = √65 = 8.06…'], '8.06 cm (2 d.p.)')}
+${W('A right-angled triangle has hypotenuse 13 cm and one side 9 cm. Find the other side.', ['9² + b² = 13²', '81 + b² = 169, so b² = 169 − 81 = 88', 'b = √88 = 9.38…'], '9.38 cm (2 d.p.)')}
+${W('Find the length of the line segment from (1, 1) to (4, 5) on a grid.', ['Make a right-angled triangle: across 3, up 4.', '3² + 4² = 9 + 16 = 25.', '√25 = 5.'], '5 units (check the axis scale first)')}` }],
+  'y9-speed-distance-time': [{ title: SW, html: `<p>"Per" means "for every": 60 mph means 60 miles for every hour.</p>
+${table(['Hours', '0', '0.5', '1', '2', '3.5'], [['Miles', '0', '30', '60', '120', '210']])}
+${W('A ferry travels at a constant speed and covers 270 miles in 4.5 hours. Find its speed in mph.', ['Bar model: split 4.5 hours into 9 half-hours; each half-hour is 270 ÷ 9 = 30 miles.', 'So each hour is 60 miles.', 'Or: speed = 270 ÷ 4.5 = 60.'], '60 mph')}
+${W('A cyclist rides at 18 km/h for 40 minutes. How far does she go?', ['Units must match: 40 minutes = ' + f(40, 60) + ' = ' + f(2, 3) + ' hour.', 'Distance = 18 × ' + f(2, 3) + ' = 12.'], '12 km')}` }],
+  'y9-density': [{ title: SW, html: `${rule('Density = ' + f('mass', 'volume') + ' &nbsp;&nbsp; Volume of a prism = area of cross-section × depth')}
+${W('A prism has a triangular cross-section of area 15 cm² and is 8 cm deep. It is made of a material with density 2.7 g/cm³. Find its mass.', ['Volume = 15 × 8 = 120 cm³.', 'Mass = density × volume = 2.7 × 120 = 324.'], '324 g')}
+${W('A 250 cm³ block has a mass of 2225 g. Find its density.', ['Density = 2225 ÷ 250 = 8.9.'], '8.9 g/cm³')}` }],
+  'y9-relative-frequency': [{ title: SW, html: `${table(['Colour', 'Frequency', 'Relative frequency'], [['Purple', '9', '0.36'], ['Orange', '11', '0.44'], ['Grey', '5', '0.2'], ['Total', '25', '1']])}
+${W('Using the table, estimate how many purple results there would be in 200 more trials.', ['Relative frequency of purple = 9 ÷ 25 = 0.36.', 'Estimate = 0.36 × 200 = 72.'], 'about 72')}
+${W('The probability of picking a toffee is 0.15. A sweet is picked and replaced 600 times. Show that about 90 toffees are expected.', ['Expected = probability × number of trials.', '0.15 × 600 = 90.'], '90 — a long-run estimate, not a prediction')}` }],
+  'y9-listing-outcomes': [{ title: SW, html: `<p>A spinner numbered 1 to 4 and a coin give 4 × 2 = 8 outcomes:</p>
+${table(['', '1', '2', '3', '4'], [['H', '1H', '2H', '3H', '4H'], ['T', '1T', '2T', '3T', '4T']])}
+${W('Using the sample space above, find P(an odd number and tails).', ['Outcomes that work: 1T, 3T.', '2 out of 8 equally likely outcomes.'], f(2, 8) + ' = ' + f(1, 4))}` }],
+};
+
+module.exports = { ...C, __extraSections };

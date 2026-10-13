@@ -76,7 +76,7 @@ const routes: FastifyPluginAsyncZod<{ svc: Services }> = async (app, { svc }) =>
   app.put('/admin/content/learn/:topicId', { config: admin, schema: { tags, summary: 'Replace a topic’s teaching page', params: z.object({ topicId: z.string() }), body: LearnPutBody, response: { 200: Ok } } }, async (req) => {
     const [t] = await db.select({ id: s.topics.id }).from(s.topics).where(eq(s.topics.id, req.params.topicId));
     if (!t) fail(404, 'Topic not found');
-    await db.insert(s.learnPages).values({ topicId: t.id, content: req.body.content }).onConflictDoUpdate({ target: s.learnPages.topicId, set: { content: req.body.content, updatedAt: new Date().toISOString() } });
+    await db.insert(s.learnPages).values({ topicId: t.id, content: req.body.content, edited: true }).onConflictDoUpdate({ target: s.learnPages.topicId, set: { content: req.body.content, edited: true, updatedAt: new Date().toISOString() } });
     await changed(req.user!, `learn page ${t.id}`); return { ok: true as const };
   });
 };

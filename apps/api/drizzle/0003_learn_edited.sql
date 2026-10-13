@@ -1,0 +1,1 @@
+ALTER TABLE "learn_pages" ADD COLUMN "edited" boolean DEFAULT false NOT NULL;
