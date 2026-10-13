@@ -67,6 +67,20 @@ describe('reading & vocabulary', () => {
     await kid.call('PATCH', `${base}/reading/shelf/${item.id}`, { status: 'finished' }, 400);
     expect((await kid.call('PATCH', `${base}/reading/shelf/${item.id}`, { status: 'finished', rating: 5, summary: 'A short story about two workers who share a dream of owning land, and how loneliness and bad luck get in the way.' })).finished).toBe(true);
 
+    // full text of public-domain books, chapter by chapter
+    const pd = books.find((b: { hasText: boolean }) => b.hasText);
+    if (pd) {
+      const toc = await kid.call('GET', `/reading/books/${pd.id}/text`);
+      expect(toc.chapters.length).toBeGreaterThan(2);
+      const ch = await kid.call('GET', `/reading/books/${pd.id}/text/2`);
+      expect(ch.paragraphs.length).toBeGreaterThan(5);
+      expect(ch.prev.n).toBe(1);
+      await kid.call('GET', `/reading/books/${pd.id}/text/999`, undefined, 404);
+    }
+    const modern = books.find((b: { hasText: boolean }) => !b.hasText);
+    if (modern) await kid.call('GET', `/reading/books/${modern.id}/text`, undefined, 404);
+    await kid.call('GET', '/reading/books/..%2F..%2Fpackage/text', undefined, 404);
+
     // privacy
     const other = client(ctx.app);
     await other.call('POST', '/auth/register', { name: 'Other', email: 'other-rd@example.test', password: 'longenough1' });

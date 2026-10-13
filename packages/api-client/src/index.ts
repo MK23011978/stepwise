@@ -110,6 +110,8 @@ export function createApiClient(opts: ClientOptions = {}) {
     },
     reading: {
       books: () => get('/reading/books'),
+      contents: (bookId: string) => get(`/reading/books/${encodeURIComponent(bookId)}/text`),
+      chapter: (bookId: string, n: number) => get(`/reading/books/${encodeURIComponent(bookId)}/text/${n}`),
       overview: (id: string) => get(`/students/${id}/reading`),
       setGoal: (id: string, b: In<typeof S.ReadingGoalBody>) => put(`/students/${id}/reading/goal`, b),
       addToShelf: (id: string, b: In<typeof S.ShelfAddBody>) => post(`/students/${id}/reading/shelf`, b),

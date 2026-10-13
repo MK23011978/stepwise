@@ -1,7 +1,7 @@
 // Reading & Words: a daily reading goal with a vocabulary focus — log today's reading with a summary, collect new
 // words from the book, review them with spaced repetition, and pick books from the recommended Year 9 list.
-import { useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { useSession } from '../../state/session';
@@ -9,7 +9,7 @@ import { useOverlay } from '../../ui/overlays';
 import { StudentGate } from '../../features/StudentGate';
 import { Donut } from '../../ui/charts';
 import { Empty, ErrorBox, Spinner } from '../../ui/bits';
-import { fmtDate, todayStr } from '../../lib/format';
+import { fmtDate, store, todayStr } from '../../lib/format';
 import { confetti } from '../../lib/confetti';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -31,9 +31,10 @@ function Reading({ child: c }: { child: any }) {
       <div className="page-head"><h1>📚 Reading & Words</h1><p>Read a little every day and collect new words from your book. Daily goal: <b>{D.goal.dailyMinutes} minutes</b> and <b>{D.goal.dailyWords} new word{D.goal.dailyWords === 1 ? '' : 's'}</b> — reach both for +{D.reward.xp} XP and +{D.reward.coins} coins.</p></div>
       <div className="tabs" role="tablist">{TABS.map(([id, label]) => <button key={id} className={tab === id ? 'on' : ''} onClick={() => setParams(id === 'today' ? {} : { tab: id }, { replace: true })}>{label}</button>)}</div>
       {tab === 'today' && <Today child={c} D={D} goTo={(t) => setParams({ tab: t })} />}
-      {tab === 'shelf' && <Shelf child={c} D={D} goTo={(t) => setParams({ tab: t })} />}
+      {tab === 'shelf' && <Shelf child={c} D={{ ...D, textBooks: (books.data?.books || []).filter((b: any) => b.hasText).map((b: any) => b.id) }} goTo={(t) => setParams({ tab: t })} />}
       {tab === 'words' && <Words child={c} D={D} books={books.data?.books || []} />}
       {tab === 'library' && <Library child={c} D={D} books={books.data?.books || []} loading={books.isLoading} />}
+      {tab === 'read' && params.get('book') && <Reader child={c} D={D} bookId={params.get('book')!} n={Number(params.get('ch') || store.get(`readCh:${params.get('book')}`, 1))} go={(ch) => setParams({ tab: 'read', book: params.get('book')!, ch: String(ch) })} />}
     </>
   );
 }
@@ -101,10 +102,10 @@ function GoalEditor({ child: c, goal }: { child: any; goal: any; canEdit: boolea
   return <button className="btn sm ghost" onClick={edit}>⚙️ Change goal</button>;
 }
 
-function LogForm({ child: c, shelf, close }: { child: any; shelf: any[]; close: () => void }) {
+function LogForm({ child: c, shelf, close, defaults }: { child: any; shelf: any[]; close: () => void; defaults?: { shelfId?: string; minutes?: number; note?: string } }) {
   const { toast } = useOverlay(); const reload = useReload(c.id);
-  const [shelfId, setShelfId] = useState(shelf[0]?.id || ''); const book = shelf.find((b) => b.id === shelfId);
-  const [minutes, setMinutes] = useState('20'); const [toPage, setToPage] = useState(''); const [summary, setSummary] = useState(''); const [busy, setBusy] = useState(false);
+  const [shelfId, setShelfId] = useState(defaults?.shelfId || shelf[0]?.id || ''); const book = shelf.find((b) => b.id === shelfId);
+  const [minutes, setMinutes] = useState(String(defaults?.minutes || 20)); const [toPage, setToPage] = useState(''); const [summary, setSummary] = useState(''); const [busy, setBusy] = useState(false);
   const submit = async (e: FormEvent) => {
     e.preventDefault(); setBusy(true);
     try { const r = await api.reading.log(c.id, { shelfId, minutes: Number(minutes), toPage: toPage ? Number(toPage) : undefined, summary, day: todayStr() }); goalToast(r.goal, toast); if (!r.goal.rewarded) toast('Reading saved 📖', 'good'); reload(); close(); }
@@ -120,6 +121,7 @@ function LogForm({ child: c, shelf, close }: { child: any; shelf: any[]; close: 
           <textarea className="input" rows={5} value={summary} onChange={(e) => setSummary(e.target.value)} minLength={30} maxLength={2000} required placeholder="Who did what? What changed? What do you think will happen next?" />
           <span className="small muted">{summary.trim().length}/30 characters minimum</span></label>
       </div>
+      {defaults?.note && <div className="small muted" style={{ marginBottom: 10 }}>{defaults.note}</div>}
       {book?.book?.prompts?.length > 0 && <div className="note small" style={{ marginBottom: 14 }}><b>Ideas for your summary:</b><ul style={{ margin: '6px 0 0 18px' }}>{book.book.prompts.map((p: string) => <li key={p}>{p}</li>)}</ul></div>}
       <div className="row" style={{ justifyContent: 'flex-end' }}><button type="button" className="btn ghost" onClick={close}>Cancel</button><button className="btn" disabled={busy}>Save</button></div>
     </form>
@@ -216,6 +218,7 @@ function Shelf({ child: c, D, goTo }: { child: any; D: any; goTo: (t: string) =>
           {b.totalPages ? <><div className="bar thin" style={{ marginTop: 12 }}><i style={{ width: `${b.pct}%` }} /></div><div className="small muted">page {b.currentPage} of {b.totalPages} · {b.pct}%</div></> : <div className="small muted" style={{ marginTop: 12 }}>page {b.currentPage}</div>}
           {b.summary && <p className="small" style={{ marginTop: 10 }}>{b.summary}</p>}
           <div className="row wrap" style={{ marginTop: 12 }}>
+            {b.bookId && D.textBooks?.includes(b.bookId) && <Link className="btn sm soft" to={`/app/reading?tab=read&book=${b.bookId}`}>📖 Read</Link>}
             {b.status !== 'finished' && <button className="btn sm" onClick={() => finish(b)}>Finished it!</button>}
             {b.status === 'reading' && <button className="btn sm ghost" onClick={() => api.reading.updateShelf(c.id, b.id, { status: 'paused' }).then(reload)}>Pause</button>}
             {b.status === 'paused' && <button className="btn sm ghost" onClick={() => api.reading.updateShelf(c.id, b.id, { status: 'reading' }).then(reload)}>Resume</button>}
@@ -275,7 +278,8 @@ function Library({ child: c, D, books, loading }: { child: any; D: any; books: a
         <div className="row wrap" style={{ marginTop: 'auto', paddingTop: 12 }}>
           {onShelf(b.id) ? <span className="pill good">On your shelf</span> : <button className="btn sm" onClick={() => start(b)}>Start reading</button>}
           <button className="btn sm ghost" onClick={() => showWords(b)}>🔤 {b.words.length} key words</button>
-          {b.freeLink && <a className="btn sm ghost" href={b.freeLink} target="_blank" rel="noreferrer">Read free online ↗</a>}
+          {b.hasText ? <Link className="btn sm soft" to={`/app/reading?tab=read&book=${b.id}`}>📖 Read in the app</Link>
+            : b.freeLink && <a className="btn sm ghost" href={b.freeLink} target="_blank" rel="noreferrer">Read free online ↗</a>}
         </div></div>)}</div>
     </div>
   );
@@ -295,5 +299,61 @@ function BookWords({ child: c, book, shelf, close }: { child: any; book: any; sh
           : <button className="btn sm soft" onClick={() => { close(); openModal((cl) => <WordForm child={c} shelf={shelf} close={cl} preset={{ word: w.word, meaning: w.def, bookId: book.id }} />, { wide: true }); }}>+ Add (write your own sentence)</button>}</div></div>)}</div>
       <div className="row" style={{ justifyContent: 'flex-end' }}><button className="btn ghost" onClick={close}>Close</button></div>
     </>
+  );
+}
+
+// ---------------------------------------------------------------- in-app reader (public-domain books)
+function Reader({ child: c, D, bookId, n, go }: { child: any; D: any; bookId: string; n: number; go: (n: number) => void }) {
+  const { openModal, toast } = useOverlay(); const reload = useReload(c.id);
+  const toc = useQuery({ queryKey: ['book-toc', bookId], queryFn: () => api.reading.contents(bookId), staleTime: Infinity });
+  const ch = useQuery({ queryKey: ['book-ch', bookId, n], queryFn: () => api.reading.chapter(bookId, n), staleTime: Infinity });
+  const [size, setSize] = useState<number>(() => Number(store.get('readSize', 18)));
+  const opened = useRef(Date.now()); const [, tick] = useState(0);
+  useEffect(() => { opened.current = Date.now(); store.set(`readCh:${bookId}`, n); window.scrollTo({ top: 0 }); }, [bookId, n]);
+  useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30_000); return () => clearInterval(t); }, []);
+  const kw = useMemo(() => new Map<string, string>((ch.data?.keyWords || []).map((w: any) => [w.word.toLowerCase(), w.def])), [ch.data]);
+  const re = useMemo(() => (kw.size ? new RegExp(`\\b(${[...kw.keys()].map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(s|es|ed|d|ing|ly)?\\b`, 'gi') : null), [kw]);
+  if (toc.isLoading || ch.isLoading) return <Spinner />;
+  if (toc.error || ch.error) return <ErrorBox error={toc.error || ch.error} />;
+  const mins = Math.max(1, Math.round((Date.now() - opened.current) / 60_000));
+  const C = ch.data; const shelfItem = D.shelf.find((b: any) => b.bookId === bookId);
+  const addWord = (word: string, meaning = '') => openModal((close) => <WordForm child={c} shelf={D.shelf} close={close} preset={{ word, meaning, bookId }} />, { wide: true });
+  const onDouble = () => { const w = String(window.getSelection()?.toString() || '').trim().replace(/[^A-Za-z’'-]/g, ''); if (w.length > 2) addWord(w.toLowerCase()); };
+  const showKey = (word: string, def: string) => openModal((close) => <><h2>{word}</h2><p>{def}</p><p className="small muted">This is one of the key words for this book.</p>
+    <div className="row" style={{ justifyContent: 'flex-end' }}><button className="btn ghost" onClick={close}>Close</button><button className="btn" onClick={() => { close(); addWord(word, def); }}>+ Add to my words</button></div></>);
+  const mark = (p: string): ReactNode[] => {
+    if (!re) return [p];
+    const out: ReactNode[] = []; let last = 0;
+    for (const m of p.matchAll(re)) {
+      const base = m[1].toLowerCase(); out.push(p.slice(last, m.index));
+      out.push(<button key={m.index} className="kw" onClick={() => showKey(m[1], kw.get(base)!)} title={kw.get(base)}>{m[0]}</button>);
+      last = (m.index || 0) + m[0].length;
+    }
+    out.push(p.slice(last)); return out;
+  };
+  const logIt = async () => {
+    let shelf = D.shelf; let sid = shelfItem?.id;
+    if (!sid) { try { const r = await api.reading.addToShelf(c.id, { bookId }); sid = r.item.id; shelf = [...shelf, r.item]; reload(); } catch (e) { toast((e as Error).message, 'bad'); return; } }
+    openModal((close) => <LogForm child={c} shelf={shelf.filter((b: any) => b.status !== 'finished' || b.id === sid)} close={close} defaults={{ shelfId: sid, minutes: mins, note: `You read “${C.title}”. Summarise it in your own words.` }} />, { wide: true });
+  };
+  return (
+    <div className="reader">
+      <div className="reader-bar card">
+        <div className="grow"><b>{C.bookTitle}</b><div className="small muted">Chapter {C.n} of {C.of} · ⏱ {mins} min</div></div>
+        <select className="input" style={{ width: 'auto', maxWidth: 260 }} value={C.n} onChange={(e) => go(Number(e.target.value))} aria-label="Chapter">{toc.data.chapters.map((x: any) => <option key={x.n} value={x.n}>{x.title}</option>)}</select>
+        <div className="row" style={{ gap: 4 }}><button className="btn sm ghost" aria-label="Smaller text" onClick={() => { const v = Math.max(14, size - 2); setSize(v); store.set('readSize', v); }}>A−</button><button className="btn sm ghost" aria-label="Bigger text" onClick={() => { const v = Math.min(26, size + 2); setSize(v); store.set('readSize', v); }}>A+</button></div>
+      </div>
+      <article className="card reader-text" style={{ fontSize: size }} onDoubleClick={onDouble}>
+        <h2>{C.title}</h2>
+        <p className="small muted reader-tip">Tip: <span className="kw-sample">highlighted words</span> are this book’s key words — tap one for its meaning. Double-click any other word to add it to your word bank.</p>
+        {C.paragraphs.map((p: string, i: number) => <p key={i}>{mark(p)}</p>)}
+      </article>
+      <div className="reader-foot card">
+        {C.prev ? <button className="btn ghost" onClick={() => go(C.prev.n)}>← {C.prev.title}</button> : <span />}
+        <button className="btn" onClick={logIt}>📝 Log this reading ({mins} min)</button>
+        {C.next ? <button className="btn ghost" onClick={() => go(C.next.n)}>{C.next.title} →</button> : <span className="pill good">The end</span>}
+      </div>
+      <p className="tiny muted" style={{ textAlign: 'center' }}>{toc.data.source}</p>
+    </div>
   );
 }

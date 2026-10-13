@@ -14,6 +14,8 @@ const routes: FastifyPluginAsyncZod<{ svc: Services }> = async (app, { svc }) =>
   const st = (req: { user: never; params: { id: string } }) => studentFor(db, req.user, req.params.id);
 
   app.get('/reading/books', { schema: { ...T, summary: 'Recommended books with their vocabulary lists', response: { 200: AnyObject } } }, async () => ({ books: R.catalog() }));
+  app.get('/reading/books/:bookId/text', { schema: { ...T, summary: 'Chapters of a public-domain book', params: z.object({ bookId: z.string() }), response: { 200: AnyObject } } }, async (req) => R.contents(req.params.bookId));
+  app.get('/reading/books/:bookId/text/:n', { schema: { ...T, summary: 'One chapter of a public-domain book', params: z.object({ bookId: z.string(), n: z.coerce.number().int().min(1) }), response: { 200: AnyObject } } }, async (req) => R.chapter(req.params.bookId, req.params.n));
   app.get('/students/:id/reading', { schema: { ...T, summary: 'Goal, today, streak, shelf, log and word-bank stats', params: Id, response: { 200: AnyObject } } }, async (req) => R.overview(db, await st(req as never)));
   app.put('/students/:id/reading/goal', { schema: { ...T, params: Id, body: ReadingGoalBody, response: { 200: AnyObject } } }, async (req) => R.setGoal(db, await st(req as never), req.body));
   app.post('/students/:id/reading/shelf', { schema: { ...T, params: Id, body: ShelfAddBody, response: { 200: AnyObject } } }, async (req) => R.addToShelf(db, await st(req as never), req.body));

@@ -16,10 +16,19 @@ export interface CatalogBook { id: string; title: string; author: string; publis
 
 const require = createRequire(import.meta.url);
 const CATALOG_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../packages/content-seed/reading/books.cjs');
+const TEXT_DIR = path.join(path.dirname(CATALOG_FILE), 'texts');
+interface BookText { id: string; source: string; chapters: { title: string; paragraphs: string[] }[] }
+const texts = new Map<string, BookText | null>();
+/** Full text, only for public-domain books shipped in packages/content-seed/reading/texts/<id>.json */
+export function textOf(bookId: string): BookText | null {
+  if (!/^[a-z0-9-]+$/.test(bookId)) return null;
+  if (!texts.has(bookId)) { try { texts.set(bookId, require(path.join(TEXT_DIR, `${bookId}.json`)) as BookText); } catch { texts.set(bookId, null); } }
+  return texts.get(bookId)!;
+}
 let cache: CatalogBook[] | null = null;
-export function catalog(): CatalogBook[] {
+export function catalog(): (CatalogBook & { hasText: boolean })[] {
   if (!cache) { try { cache = require(CATALOG_FILE) as CatalogBook[]; } catch { cache = []; } }
-  return cache;
+  return cache.map((b) => ({ ...b, hasText: !!textOf(b.id) }));
 }
 // spare wrong options so a "choose the meaning" question always has four choices
 const SPARE_MEANINGS = ['feeling very tired after hard work', 'easy to see through, like glass', 'unwilling to change your mind', 'happening once every year',
@@ -169,6 +178,18 @@ export function createReadingService() {
     return { correct: ok, word: w.word, meaning: w.meaning, example: w.example, box, mastered: box >= MASTERED_BOX };
   }
 
-  return { catalog, overview, setGoal, addToShelf, patchShelf, removeShelf, log, addWord, removeWord, words, quiz, answer, checkGoal };
+  function contents(bookId: string) {
+    const t = textOf(bookId); const b = catalog().find((x) => x.id === bookId);
+    if (!t || !b) return fail(404, 'The full text of this book isn’t available in the app');
+    return { id: b.id, title: b.title, author: b.author, source: t.source, chapters: t.chapters.map((c, i) => ({ n: i + 1, title: c.title, words: c.paragraphs.reduce((a, p) => a + p.split(/\s+/).length, 0) })) };
+  }
+  function chapter(bookId: string, n: number) {
+    const t = textOf(bookId); const b = catalog().find((x) => x.id === bookId);
+    if (!t || !b) return fail(404, 'The full text of this book isn’t available in the app');
+    const c = t.chapters[n - 1]; if (!c) return fail(404, 'Chapter not found');
+    return { bookId, bookTitle: b.title, n, of: t.chapters.length, title: c.title, paragraphs: c.paragraphs, prev: n > 1 ? { n: n - 1, title: t.chapters[n - 2].title } : null, next: n < t.chapters.length ? { n: n + 1, title: t.chapters[n].title } : null,
+      keyWords: b.words.map((w) => ({ word: w.word, def: w.def })) };
+  }
+  return { contents, chapter, catalog, overview, setGoal, addToShelf, patchShelf, removeShelf, log, addWord, removeWord, words, quiz, answer, checkGoal };
 }
 export type ReadingService = ReturnType<typeof createReadingService>;
