@@ -108,6 +108,7 @@ export const studentProfiles = pgTable('student_profiles', {
   equipped: jsonb('equipped').$type<Record<string, string | null>>().notNull().default({}),
   giftSettings: jsonb('gift_settings').$type<Record<string, unknown> | null>(),
   // social controls (parent-managed)
+  reading: jsonb('reading').$type<{ dailyMinutes?: number; dailyWords?: number }>().notNull().default({}), // daily reading goal
   showOnline: boolean('show_online').notNull().default(true),
   chatEnabled: boolean('chat_enabled').notNull().default(true),
 });
@@ -331,6 +332,57 @@ export const chatReports = pgTable('chat_reports', {
   createdAt: createdAt(),
   closedAt: ts('closed_at'),
 }, (t) => [index('chat_reports_status_idx').on(t.status, t.createdAt)]);
+
+// ---------- reading & vocabulary ----------
+export const readingShelf = pgTable('reading_shelf', {
+  id: text('id').primaryKey(),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  bookId: text('book_id'), // catalog id, or null for a book the student added themselves
+  title: text('title').notNull(),
+  author: text('author'),
+  totalPages: integer('total_pages'),
+  currentPage: integer('current_page').notNull().default(0),
+  status: text('status').notNull().default('reading'), // reading | finished | paused
+  summary: text('summary'), // whole-book summary when finished
+  rating: integer('rating'),
+  startedAt: createdAt(),
+  finishedAt: ts('finished_at'),
+}, (t) => [index('reading_shelf_student_idx').on(t.studentId)]);
+
+export const readingLogs = pgTable('reading_logs', {
+  id: text('id').primaryKey(),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shelfId: text('shelf_id').notNull().references(() => readingShelf.id, { onDelete: 'cascade' }),
+  day: date('day', { mode: 'string' }).notNull(),
+  minutes: integer('minutes').notNull(),
+  fromPage: integer('from_page'),
+  toPage: integer('to_page'),
+  summary: text('summary').notNull(), // what happened in today's reading, in the student's own words
+  createdAt: createdAt(),
+}, (t) => [index('reading_logs_student_idx').on(t.studentId, t.day)]);
+
+export const vocabWords = pgTable('vocab_words', {
+  id: text('id').primaryKey(),
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  shelfId: text('shelf_id').references(() => readingShelf.id, { onDelete: 'set null' }),
+  bookId: text('book_id'),
+  word: text('word').notNull(),
+  meaning: text('meaning').notNull(),
+  example: text('example'), // the student's own sentence
+  box: integer('box').notNull().default(0), // Leitner box 0–5
+  due: date('due', { mode: 'string' }).notNull(),
+  correct: integer('correct').notNull().default(0),
+  wrong: integer('wrong').notNull().default(0),
+  addedOn: date('added_on', { mode: 'string' }).notNull(),
+  createdAt: createdAt(),
+}, (t) => [uniqueIndex('vocab_student_word_uq').on(t.studentId, sql`lower(${t.word})`), index('vocab_due_idx').on(t.studentId, t.due)]);
+
+export const readingDays = pgTable('reading_days', {
+  studentId: text('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  day: date('day', { mode: 'string' }).notNull(),
+  reviewed: integer('reviewed').notNull().default(0), // vocabulary reviews answered
+  goalMetAt: ts('goal_met_at'), // set once when the daily goal is first met (reward paid)
+}, (t) => [primaryKey({ columns: [t.studentId, t.day] })]);
 
 // ---------- school results (entered by the student or parent) ----------
 export const schoolResults = pgTable('school_results', {

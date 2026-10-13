@@ -14,6 +14,7 @@ import { createFamilyService } from './modules/family/family.service.js';
 import { createReportService } from './modules/report/report.service.js';
 import { createAdminService } from './modules/admin/admin.service.js';
 import { createSocialService } from './modules/social/social.service.js';
+import { createReadingService } from './modules/reading/reading.service.js';
 
 export function createServices(deps: Deps) {
   const tokens = createAuthTokens(deps);
@@ -30,6 +31,7 @@ export function createServices(deps: Deps) {
   const report = createReportService(deps, students, exams, tasks, missions);
   const admin = createAdminService(deps, students, billing, tokens, family);
   const social = createSocialService(deps);
-  return { deps, social, tokens, students, auth, billing, rewards, tasks, lessons, exams, missions, gifts, family, report, admin };
+  const reading = createReadingService();
+  return { deps, social, reading, tokens, students, auth, billing, rewards, tasks, lessons, exams, missions, gifts, family, report, admin };
 }
 export type Services = ReturnType<typeof createServices>;

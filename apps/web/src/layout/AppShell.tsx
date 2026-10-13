@@ -10,7 +10,7 @@ import { OnlinePill, useSocial } from '../features/social';
 
 const STUDENT_NAV: [string, string, string][] = [
   ['/app', 'home', 'Dashboard'], ['/app/planner', 'calendar', 'Planner & Tasks'], ['/app/report', 'report', 'Report & Plan'], ['/app/roadmap', 'map', 'Roadmap & Learn'],
-  ['/app/progress', 'chart', 'Progress'], ['/app/review', 'repeat', 'Review'], ['/app/exams', 'exam', 'Tests & Mocks'], ['/app/school-results', 'report', 'School Results'], ['/app/rewards', 'gift', 'Rewards'],
+  ['/app/progress', 'chart', 'Progress'], ['/app/review', 'repeat', 'Review'], ['/app/exams', 'exam', 'Tests & Mocks'], ['/app/reading', 'book', 'Reading & Words'], ['/app/school-results', 'report', 'School Results'], ['/app/rewards', 'gift', 'Rewards'],
 ];
 const ADMIN_NAV: [string, string, string][] = [
   ['/admin', 'chart', 'Overview'], ['/admin/users', 'users', 'Users'], ['/admin/payments', 'card', 'Payments'], ['/admin/tickets', 'ticket', 'Gift tickets'], ['/admin/curriculum', 'book', 'Curriculum'], ['/admin/reports', 'flag', 'Chat reports'],

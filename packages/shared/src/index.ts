@@ -104,6 +104,18 @@ export const SchoolResultPatch = z.object({
   grade: z.string().trim().max(20).nullish(), targetGrade: z.string().trim().max(20).nullish(), notes: z.string().trim().max(500).nullish(),
 });
 
+// ---------- reading & vocabulary ----------
+export const ReadingGoalBody = z.object({ dailyMinutes: z.coerce.number().int().min(5).max(180), dailyWords: z.coerce.number().int().min(0).max(20) });
+export const ShelfAddBody = z.object({ bookId: z.string().max(80).optional(), title: z.string().trim().min(1).max(160).optional(), author: z.string().trim().max(120).optional(), totalPages: z.coerce.number().int().min(1).max(5000).optional() })
+  .refine((b) => !!(b.bookId || b.title), 'Choose a book or type its title');
+export const ShelfPatchBody = z.object({ status: z.enum(['reading', 'finished', 'paused']).optional(), summary: z.string().trim().max(3000).optional(), rating: z.coerce.number().int().min(1).max(5).optional(), totalPages: z.coerce.number().int().min(1).max(5000).optional() });
+export const ReadingLogBody = z.object({
+  shelfId: z.string(), minutes: z.coerce.number().int().min(1, 'How many minutes did you read?').max(600), toPage: z.coerce.number().int().min(0).max(5000).optional(),
+  summary: z.string().trim().min(30, 'Write at least a couple of sentences about what you read (30+ characters)').max(2000), day: IsoDate.optional(),
+});
+export const VocabAddBody = z.object({ word: z.string().trim().min(1).max(60), meaning: z.string().trim().min(2, 'Write what the word means').max(300), example: z.string().trim().max(300).optional(), shelfId: z.string().optional(), bookId: z.string().optional() });
+export const VocabAnswerBody = z.object({ mode: z.enum(['meaning', 'spell']), answer: z.string().trim().min(1).max(300) });
+
 // ---------- billing ----------
 export const PackBody = z.object({ packId: z.string() });
 export const VerifyCardBody = z.object({ setupIntentId: z.string().optional(), demo: z.boolean().optional() });

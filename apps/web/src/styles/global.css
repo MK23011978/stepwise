@@ -673,3 +673,17 @@ blockquote { margin: 12px 0; padding: 12px 18px; border-left: 4px solid var(--in
 .nowrap { white-space: nowrap; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } .grid-2 > [style*="grid-column"] { grid-column: auto !important; } }
+
+/* ---------- reading & words ---------- */
+.reading-week { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 6px; align-items: end; margin-bottom: 10px; }
+.rw-day { text-align: center; }
+.rw-bar { height: 90px; background: var(--panel-2); border-radius: 8px; display: flex; align-items: flex-end; overflow: hidden; }
+.rw-bar i { display: block; width: 100%; background: #0ea5a4; border-radius: 8px 8px 0 0; min-height: 2px; }
+.rw-day.met .rw-bar i { background: #22c55e; }
+.diary { padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.diary:last-child { border-bottom: 0; }
+.word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.word-card { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--panel); }
+.book-card { display: flex; flex-direction: column; }
+.rec.ok { border-color: var(--good); background: var(--good-soft); }
+.rec.no { border-color: var(--bad); background: var(--bad-soft); }

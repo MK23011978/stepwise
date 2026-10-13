@@ -18,6 +18,7 @@ import adminRoutes from './modules/admin/admin.routes.js';
 import contentAdminRoutes from './modules/admin/content-admin.routes.js';
 import socialRoutes from './modules/social.routes.js';
 import schoolResultRoutes from './modules/school-results.routes.js';
+import readingRoutes from './modules/reading/reading.routes.js';
 
 export async function buildApp(deps: Deps, { logger = false }: { logger?: boolean } = {}) {
   const app = Fastify({ logger: logger ? { level: 'info' } : false, trustProxy: true, bodyLimit: 1_000_000 }).withTypeProvider<ZodTypeProvider>();
@@ -54,7 +55,7 @@ export async function buildApp(deps: Deps, { logger = false }: { logger?: boolea
     v1.addHook('onRequest', async () => { await deps.content.ensureFresh?.(); });
     v1.get('/health', { config: { auth: false }, schema: { hide: true } }, async () => ({ ok: true }));
     v1.get('/openapi.json', { config: { auth: false }, schema: { hide: true } }, async () => app.swagger());
-    for (const r of [authRoutes, billingRoutes, contentRoutes, studentRoutes, learningRoutes, adminRoutes, contentAdminRoutes, socialRoutes, schoolResultRoutes]) await v1.register(r, { svc });
+    for (const r of [authRoutes, billingRoutes, contentRoutes, studentRoutes, learningRoutes, adminRoutes, contentAdminRoutes, socialRoutes, schoolResultRoutes, readingRoutes]) await v1.register(r, { svc });
   }, { prefix: API_PREFIX });
 
   return app;
